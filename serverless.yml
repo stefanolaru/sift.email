@@ -1,0 +1,105 @@
+service: sift
+
+custom:
+    resourceName: ${self:service}_${self:provider.stage}
+    exportOutputs:
+        include:
+            - UserPoolId
+            - UserPoolWebClientId
+            - IdentityPoolId
+            - Bucket
+            - CloudFrontDistribution
+            - CloudFrontDomain
+            - HttpApiUrl
+        output:
+            file: ./.env.${self:provider.stage}
+            format: toml
+    domain:
+        dev: app-dev.sift.email
+        prod: app.sift.email
+
+provider:
+    name: aws
+    stage: ${opt:stage, 'dev'}
+    endpointType: REGIONAL
+    #runtime: nodejs14.x
+    memorySize: 128
+    timeout: 5
+    # enable xray tracing
+    tracing:
+        lambda: true
+        apiGateway: true
+    tags:
+        project: ${self:service}
+    httpApi:
+        metrics: true
+        cors: true
+        shouldStartNameWithService: true
+        # authorizers:
+        #     Authorizer:
+        #         identitySource: $request.header.Authorization
+        #         issuerUrl: !GetAtt UserPool.ProviderURL
+        #         audience: !Ref UserPoolClient
+    environment:
+        STAGE: ${self:provider.stage}
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1 # keep alive 3rd party TCP connections
+
+    logRetentionInDays: 7 # no of days to retain the Lambda logs in CloudWatch
+
+functions:
+    # validator
+    - ${file(./backend/functions/validator/function.yml)}
+    - ${file(./backend/functions/csv/function.yml)}
+    - ${file(./backend/functions/list_processor/function.yml)}
+    - ${file(./backend/functions/stream_consumer/function.yml)}
+    - ${file(./backend/functions/event_listener/function.yml)}
+
+resources:
+    # Infra
+    - ${file(./backend/infra/s3.yml)}
+    # - ${file(./backend/infra/cloudfront.yml)}
+    - ${file(./backend/infra/dynamodb.yml)}
+    - ${file(./backend/infra/eventbridge.yml)}
+    - ${file(./backend/infra/sns.yml)}
+    # - ${file(./backend/infra/cognito.yml)}
+
+    # Roles
+    - ${file(./backend/functions/validator/role.yml)}
+    - ${file(./backend/functions/csv/role.yml)}
+    - ${file(./backend/functions/list_processor/role.yml)}
+    - ${file(./backend/functions/stream_consumer/role.yml)}
+    - ${file(./backend/functions/event_listener/role.yml)}
+
+    # step function & role
+    - ${file(./backend/step_functions/process_list/function.yml)}
+    - ${file(./backend/step_functions/process_list/role.yml)}
+
+    # Outputs for frontend
+    - Outputs:
+          # UserPoolId:
+          #     Value: !Ref UserPool
+          # UserPoolWebClientId:
+          #     Value: !Ref UserPoolClient
+          # IdentityPoolId:
+          #     Value: !Ref IdentityPool
+          Bucket:
+              Value: !Ref FrontendBucket
+          # CloudFrontDistribution:
+          #     Value: !Ref CloudFrontDistribution
+          # CloudFrontDomain:
+          #     Value: !GetAtt CloudFrontDistribution.DomainName
+          ApiUrl:
+              Value: HttpApiUrl
+
+package:
+    # exclude files from the package
+    patterns:
+        - "!package.json"
+        - "!package-lock.json"
+        - "!README.md"
+        - "!LICENSE"
+        - "!tmp"
+        - "!.github/**"
+        - "!frontend"
+plugins:
+    - serverless-export-outputs

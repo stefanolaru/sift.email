@@ -1,0 +1,28 @@
+{
+  "name": "sift.email",
+  "version": "2.0.0",
+  "description": "A service checking if an email address is valid",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stefanolaru/sift.email.git"
+  },
+  "author": "Stefan Olaru",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stefanolaru/sift.email/issues"
+  },
+  "homepage": "https://github.com/stefanolaru/sift.email#readme",
+  "devDependencies": {
+    "serverless-export-outputs": "^1.0.2"
+  },
+  "dependencies": {
+    "disposable-email-domains": "^1.0.62",
+    "free-email-domains": "^1.0.28",
+    "ksuid": "^3.0.0",
+    "papaparse": "^5.3.2"
+  }
+}

@@ -1,0 +1,97 @@
+Resources:
+    # public validator role
+    PublicValidatorRole:
+        Type: AWS::IAM::Role
+        Properties:
+            Path: /
+            RoleName: ${self:custom.resourceName}_public_validator
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                              - lambda.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: ${self:custom.resourceName}_public_validator
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          # DynamoDB
+                          - Effect: Allow
+                            Action:
+                                - dynamodb:Query
+                                - dynamodb:PutItem
+                            Resource:
+                                - !GetAtt Table.Arn
+                                # to query on PK_CREATED index
+                                - !Join
+                                  - ""
+                                  - - !GetAtt Table.Arn
+                                    - "/index/PK_CREATED"
+                          # CW
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
+                          # xray
+                          - Effect: Allow
+                            Action:
+                                - xray:PutTelemetryRecords
+                                - xray:PutTraceSegments
+                            Resource: "*"
+
+    # private validator role
+    PrivateValidatorRole:
+        Type: AWS::IAM::Role
+        Properties:
+            Path: /
+            RoleName: ${self:custom.resourceName}_private_validator
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                              - lambda.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: ${self:custom.resourceName}_private_validator
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          # DynamoDB
+                          - Effect: Allow
+                            Action:
+                                - dynamodb:GetItem
+                                - dynamodb:PutItem
+                            Resource:
+                                - !GetAtt Table.Arn
+                          # allow S3 upload
+                          - Effect: Allow
+                            Action:
+                                - s3:GetObject
+                                - s3:PutObject
+                                - s3:PutObjectAcl
+                            Resource:
+                                - !GetAtt ListProcessingBucket.Arn
+                                - !Join
+                                  - ""
+                                  - - !GetAtt ListProcessingBucket.Arn
+                                    - "/*"
+                          # CW
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
+                          # xray
+                          - Effect: Allow
+                            Action:
+                                - xray:PutTelemetryRecords
+                                - xray:PutTraceSegments
+                            Resource: "*"

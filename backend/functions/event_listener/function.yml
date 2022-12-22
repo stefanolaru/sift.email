@@ -1,0 +1,8 @@
+# list validation finished
+listProcessingFinished:
+    handler: backend/functions/event_listener/list_finished.handler
+    memorySize: 256
+    timeout: 30
+    role: EventListenerRole
+    environment:
+        DDB_TABLE: !Ref Table

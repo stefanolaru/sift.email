@@ -1,0 +1,40 @@
+# sign request for csv upload
+csvSign:
+    handler: backend/functions/csv/sign.handler
+    memorySize: 256
+    timeout: 28
+    role: CsvUtilsRole
+    environment:
+        S3_BUCKET: !Ref ListProcessingBucket
+    events:
+        # get the signed request for uploader
+        - httpApi:
+              path: /csv/sign
+              method: GET
+
+# check an uploaded CSV, return first row and total rows
+csvCheck:
+    handler: backend/functions/csv/check.handler
+    memorySize: 512
+    timeout: 28
+    role: CsvUtilsRole
+    environment:
+        S3_BUCKET: !Ref ListProcessingBucket
+    events:
+        - httpApi:
+              path: /csv/check
+              method: GET
+
+# private bulk validator
+csvSubmit:
+    handler: backend/functions/csv/submit.handler
+    timeout: 28
+    role: CsvUtilsRole
+    environment:
+        DDB_TABLE: !Ref Table
+        S3_BUCKET: !Ref ListProcessingBucket
+    events:
+        # create
+        - httpApi:
+              path: /csv/submit
+              method: POST

@@ -1,0 +1,49 @@
+Resources:
+    # The bucket hosting the app frontend
+    FrontendBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: ${self:service}-${self:provider.stage}-frontend
+            AccessControl: PublicRead
+            WebsiteConfiguration:
+                IndexDocument: index.html
+                ErrorDocument: error.html
+    # The bucket to upload the data for bulk processing
+    ListProcessingBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: ${self:service}-${self:provider.stage}-process
+            # block public access configs
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                BlockPublicPolicy: true
+                IgnorePublicAcls: true
+                RestrictPublicBuckets: true
+            # autodelete orphan files
+            LifecycleConfiguration:
+                Rules:
+                    # delete uploader garbage after 1 day
+                    - Id: AutodeleteTempRule
+                      Status: Enabled
+                      ExpirationInDays: 1
+                      Prefix: temp/
+                    # delete processing garbage after 1 day
+                    - Id: AutodeleteInputRule
+                      Status: Enabled
+                      ExpirationInDays: 1
+                      Prefix: input/
+                    # delete processing garbage after 1 day
+                    - Id: AutodeleteChunksRule
+                      Status: Enabled
+                      ExpirationInDays: 1
+                      Prefix: chunks/
+                    # delete results after 7 days
+                    - Id: AutodeleteOutputRule
+                      Status: Enabled
+                      ExpirationInDays: 7
+                      Prefix: output/
+
+            # notifications to EventBridge
+            NotificationConfiguration:
+                EventBridgeConfiguration:
+                    EventBridgeEnabled: true

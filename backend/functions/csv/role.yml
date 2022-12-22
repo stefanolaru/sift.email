@@ -1,0 +1,50 @@
+Resources:
+    CsvUtilsRole:
+        Type: AWS::IAM::Role
+        Properties:
+            Path: /
+            RoleName: ${self:custom.resourceName}_csv_utils
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                              - lambda.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: ${self:custom.resourceName}_csv_utils
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          # allow S3 upload
+                          - Effect: Allow
+                            Action:
+                                - s3:GetObject
+                                - s3:PutObject
+                            Resource:
+                                - !GetAtt ListProcessingBucket.Arn
+                                - !Join
+                                  - ""
+                                  - - !GetAtt ListProcessingBucket.Arn
+                                    - "/*"
+                          # DynamoDB
+                          - Effect: Allow
+                            Action:
+                                - dynamodb:GetItem
+                                - dynamodb:PutItem
+                            Resource:
+                                - !GetAtt Table.Arn
+                          # allow cloudwatch
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
+                          # xray
+                          - Effect: Allow
+                            Action:
+                                - xray:PutTelemetryRecords
+                                - xray:PutTraceSegments
+                            Resource: "*"

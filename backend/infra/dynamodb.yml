@@ -1,0 +1,61 @@
+Resources:
+    Table:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: ${self:custom.resourceName}
+            AttributeDefinitions:
+                - AttributeName: PK
+                  AttributeType: S
+                - AttributeName: SK
+                  AttributeType: S
+                - AttributeName: created_at
+                  AttributeType: N
+                - AttributeName: entity_type
+                  AttributeType: S
+                - AttributeName: GSI
+                  AttributeType: S
+            KeySchema:
+                - AttributeName: PK
+                  KeyType: HASH
+                - AttributeName: SK
+                  KeyType: RANGE
+            LocalSecondaryIndexes:
+                - IndexName: PK_CREATED
+                  KeySchema:
+                      - AttributeName: PK
+                        KeyType: HASH
+                      - AttributeName: created_at
+                        KeyType: RANGE
+                  Projection:
+                      ProjectionType: ALL
+            GlobalSecondaryIndexes:
+                # relationships index
+                - IndexName: GSI
+                  KeySchema:
+                      - AttributeName: GSI
+                        KeyType: HASH
+                      - AttributeName: SK
+                        KeyType: RANGE
+                  Projection:
+                      ProjectionType: ALL
+                # to be used to mimic cake autoincrement ID
+                - IndexName: ENTITY
+                  KeySchema:
+                      - AttributeName: entity_type
+                        KeyType: HASH
+                      - AttributeName: created_at
+                        KeyType: RANGE
+                  Projection:
+                      ProjectionType: ALL
+            # stream specs
+            StreamSpecification:
+                StreamViewType: NEW_AND_OLD_IMAGES
+            # backups, enable in production
+            PointInTimeRecoverySpecification:
+                PointInTimeRecoveryEnabled: TRUE
+            # use the On Demand pricing
+            BillingMode: PAY_PER_REQUEST
+            # autodelete logs after specified time
+            TimeToLiveSpecification:
+                AttributeName: expires_at
+                Enabled: TRUE

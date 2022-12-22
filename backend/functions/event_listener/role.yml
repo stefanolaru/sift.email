@@ -1,0 +1,39 @@
+Resources:
+    # stream consumer role
+    EventListenerRole:
+        Type: AWS::IAM::Role
+        Properties:
+            Path: /
+            RoleName: ${self:custom.resourceName}_event_listener
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                              - lambda.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: ${self:custom.resourceName}_event_listener
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          # DynamoDB allow item update and stream related operations
+                          - Effect: Allow
+                            Action:
+                                - dynamodb:UpdateItem
+                            Resource:
+                                - !GetAtt Table.Arn
+                          # CW
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
+                          # xray
+                          - Effect: Allow
+                            Action:
+                                - xray:PutTelemetryRecords
+                                - xray:PutTraceSegments
+                            Resource: "*"

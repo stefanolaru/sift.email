@@ -1,0 +1,21 @@
+# requests stream consumer
+streamConsumerUsage:
+    handler: backend/functions/stream_consumer/usage.handler
+    memorySize: 128
+    timeout: 10
+    role: StreamConsumerRole
+    environment:
+        DDB_TABLE: !Ref Table
+    events:
+        - stream:
+              type: dynamodb
+              arn: !GetAtt Table.StreamArn
+              maximumRetryAttempts: 1
+              batchSize: 10
+              # only execute for request entries
+              filterPatterns:
+                  - eventName: [INSERT]
+                    dynamodb:
+                        NewImage:
+                            entity_type:
+                                S: [request]

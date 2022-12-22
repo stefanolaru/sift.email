@@ -1,0 +1,26 @@
+Resources:
+    # list processing start
+    ListProcessingStartTopic:
+        Type: AWS::SNS::Topic
+        Properties:
+            TopicName: ${self:custom.resourceName}_processing_start
+    # list processing done
+    ListProcessingEndTopic:
+        Type: AWS::SNS::Topic
+        Properties:
+            TopicName: ${self:custom.resourceName}_processing_end
+    # allow topic to invoke lambda
+    LambdaInvokePermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: sns.amazonaws.com
+            SourceArn: !Ref ListProcessingEndTopic
+            FunctionName: !GetAtt ListProcessingFinishedLambdaFunction.Arn
+    # subscribe lambda to topic
+    ListProcessingEndTopicSubscription:
+        Type: AWS::SNS::Subscription
+        Properties:
+            Endpoint: !GetAtt ListProcessingFinishedLambdaFunction.Arn
+            Protocol: lambda
+            TopicArn: !Ref ListProcessingEndTopic

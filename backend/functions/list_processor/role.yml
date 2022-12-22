@@ -1,0 +1,44 @@
+Resources:
+    ListProcessingRole:
+        Type: AWS::IAM::Role
+        Properties:
+            Path: /
+            RoleName: ${self:custom.resourceName}_list_processing
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                              - lambda.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: ${self:custom.resourceName}_list_processing
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          # allow S3 upload
+                          - Effect: Allow
+                            Action:
+                                - s3:GetObject
+                                - s3:PutObject
+                                - s3:ListBucket
+                            Resource:
+                                - !GetAtt ListProcessingBucket.Arn
+                                - !Join
+                                  - ""
+                                  - - !GetAtt ListProcessingBucket.Arn
+                                    - "/*"
+                          # allow cloudwatch
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
+                          # xray
+                          - Effect: Allow
+                            Action:
+                                - xray:PutTelemetryRecords
+                                - xray:PutTraceSegments
+                            Resource: "*"

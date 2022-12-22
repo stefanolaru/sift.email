@@ -1,0 +1,27 @@
+# public validator
+publicValidator:
+    handler: backend/functions/validator/public.handler
+    timeout: 5
+    role: PublicValidatorRole
+    environment:
+        DDB_TABLE: !Ref Table
+        RATE_LIMIT_MAX_REQUESTS: 5 # max requests per interval, set to 0 to disable rate limiting
+        RATE_LIMIT_INTERVAL: 86400 # 24 hours
+    events:
+        # create
+        - httpApi:
+              path: /check/public
+              method: POST
+# private validator
+privateValidator:
+    handler: backend/functions/validator/private.handler
+    timeout: 15
+    role: PrivateValidatorRole
+    environment:
+        DDB_TABLE: !Ref Table
+        S3_BUCKET: !Ref ListProcessingBucket
+    events:
+        # create
+        - httpApi:
+              path: /check
+              method: POST

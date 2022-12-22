@@ -1,0 +1,180 @@
+{
+    "Comment": "Process lists of recipients",
+    "StartAt": "Processing Started",
+    "States": {
+        "Processing Started": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Parameters": {
+                "Message.$": "$",
+                "TopicArn": "${ListProcessingStartTopic}"
+            },
+            "Next": "Prevalidation",
+            "ResultPath": null
+        },
+        "Prevalidation": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "OutputPath": "$.Payload",
+            "Parameters": {
+                "FunctionName": "${ListPrevalidateFunction}",
+                "Payload.$": "$"
+            },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                }
+            ],
+            "Next": "Has Domains to Check?"
+        },
+        "Has Domains to Check?": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.domains",
+                    "NumericEquals": 0,
+                    "Next": "No Domains"
+                }
+            ],
+            "Default": "Preflight Domain List"
+        },
+        "No Domains": {
+            "Type": "Pass",
+            "Next": "Bundle"
+        },
+        "Preflight Domain List": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "OutputPath": "$.Payload",
+            "Parameters": {
+                "Payload.$": "$",
+                "FunctionName": "${ListDomainsPreflightFunction}"
+            },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                }
+            ],
+            "Next": "Validate domains"
+        },
+        "Validate domains": {
+            "Type": "Map",
+            "MaxConcurrency": 10,
+            "ItemsPath": "$.batches",
+            "Parameters": {
+                "meta.$": "$.meta",
+                "batch_size.$": "$.batch_size",
+                "batch.$": "$$.Map.Item.Value"
+            },
+            "ItemProcessor": {
+                "ProcessorConfig": {
+                    "Mode": "INLINE"
+                },
+                "StartAt": "MX Check",
+                "States": {
+                    "MX Check": {
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke",
+                        "OutputPath": "$.Payload",
+                        "Parameters": {
+                            "Payload.$": "$",
+                            "FunctionName": "${ListMXCheckFunction}"
+                        },
+                        "Retry": [
+                            {
+                                "ErrorEquals": [
+                                    "Lambda.ServiceException",
+                                    "Lambda.AWSLambdaException",
+                                    "Lambda.SdkClientException",
+                                    "Lambda.TooManyRequestsException"
+                                ],
+                                "IntervalSeconds": 2,
+                                "MaxAttempts": 6,
+                                "BackoffRate": 2
+                            }
+                        ],
+                        "Next": "Has Invalid Results"
+                    },
+                    "Has Invalid Results": {
+                        "Type": "Choice",
+                        "Choices": [
+                            {
+                                "Variable": "$.invalid",
+                                "BooleanEquals": false,
+                                "Next": "No Invalid Domains"
+                            }
+                        ],
+                        "Default": "Store Invalid Domains"
+                    },
+                    "No Invalid Domains": {
+                        "Type": "Pass",
+                        "End": true
+                    },
+                    "Store Invalid Domains": {
+                        "Type": "Task",
+                        "Parameters": {
+                            "Body.$": "$.invalid",
+                            "Bucket.$": "$.bucket",
+                            "Key.$": "States.Format('{}invalid-domains/{}.json', $.key_prefix, $.batch)"
+                        },
+                        "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
+                        "End": true,
+                        "ResultPath": null
+                    }
+                }
+            },
+            "Next": "Bundle",
+            "ResultSelector": {
+                "meta.$": "$.[0]meta"
+            }
+        },
+        "Bundle": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "OutputPath": "$.Payload",
+            "Parameters": {
+                "Payload.$": "$",
+                "FunctionName": "${ListBundleResultsFunction}"
+            },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                }
+            ],
+            "Next": "Processing Finished"
+        },
+        "Processing Finished": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Parameters": {
+                "Message.$": "$",
+                "TopicArn": "${ListProcessingEndTopic}"
+            },
+            "End": true
+        }
+    }
+}

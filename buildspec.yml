@@ -8,7 +8,7 @@ phases:
             - echo "npm install -g serverless"
     pre_build:
         commands:
-            - echo "we are in the pre build phase"
+            - echo "npm install"
     build:
         commands:
             - echo "we are in the build block"

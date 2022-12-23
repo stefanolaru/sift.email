@@ -1,4 +1,3 @@
-#
 # Cognito presignup - check for disposable emails
 cognitoPreSignup:
     handler: backend/functions/users/pre_signup.handler

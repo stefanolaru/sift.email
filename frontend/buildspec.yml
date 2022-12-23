@@ -11,7 +11,7 @@ phases:
             - echo "prebuild"
     build:
         commands:
-            - npm --prefix fronted/ run build
+            - npm --prefix frontend/ run build
     post_build:
         commands:
             - echo "we are in the post build phase"

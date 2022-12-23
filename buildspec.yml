@@ -3,7 +3,7 @@ version: 0.2
 phases:
     install:
         runtime-versions:
-            nodejs: 16
+            nodejs: latest
         commands:
             - echo "npm install -g serverless"
     pre_build:

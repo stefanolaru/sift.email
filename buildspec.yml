@@ -9,7 +9,7 @@ phases:
             - sls -v
     pre_build:
         commands:
-            - npm installs
+            - npm install
     build:
         commands:
             - sls package --verbose

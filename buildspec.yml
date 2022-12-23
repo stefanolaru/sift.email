@@ -9,11 +9,10 @@ phases:
             - sls -v
     pre_build:
         commands:
-            - npm install
+            - npm installs
     build:
         commands:
-            - echo "we are in the build block"
-            - echo "we will run some tests"
+            - sls package --verbose
     post_build:
         commands:
             - echo "we are in the post build phase"

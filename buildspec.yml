@@ -6,6 +6,7 @@ phases:
             nodejs: latest
         commands:
             - echo "npm install -g serverless"
+            - echo "sls -v"
     pre_build:
         commands:
             - echo "npm install"

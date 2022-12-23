@@ -135,4 +135,9 @@ dist
 
 .tern-port
 
+# exclude .env files & certificate files
 .env*
+*.pem
+
+# frontend build
+frontend/build/*

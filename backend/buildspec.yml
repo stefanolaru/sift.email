@@ -12,7 +12,7 @@ phases:
             - npm install
     build:
         commands:
-            - sls package --verbose
+            - sls deploy --stage prod --verbose
     post_build:
         commands:
-            - echo "we are in the post build phase!"
+            - echo "we are done."

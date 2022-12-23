@@ -21,6 +21,7 @@ custom:
 
 provider:
     name: aws
+    deploymentMethod: direct
     stage: ${opt:stage, 'dev'}
     endpointType: REGIONAL
     #runtime: nodejs14.x
@@ -64,6 +65,7 @@ resources:
     - ${file(./backend/infra/eventbridge.yml)}
     - ${file(./backend/infra/sns.yml)}
     - ${file(./backend/infra/cognito.yml)}
+    - ${file(./backend/infra/codebuild.yml)}
 
     # Roles
     - ${file(./backend/functions/validator/role.yml)}
@@ -101,6 +103,7 @@ package:
         - "!package-lock.json"
         - "!README.md"
         - "!LICENSE"
+        - "!buildspec.yml"
         - "!tmp"
         - "!.github/**"
         - "!frontend"

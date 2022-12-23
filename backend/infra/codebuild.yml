@@ -1,0 +1,95 @@
+Resources:
+    CodeBuildBackend:
+        Type: AWS::CodeBuild::Project
+        Properties:
+            Name: ${self:custom.resourceName}_backend
+            Description: Build & deploy ${self:custom.resourceName} backend
+            ServiceRole: !GetAtt CodeBuildRole.Arn
+            Artifacts:
+                Type: no_artifacts
+            Environment:
+                Type: LINUX_CONTAINER
+                ComputeType: BUILD_GENERAL1_SMALL
+                Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+            Source:
+                Type: GITHUB
+                Location: https://github.com/stefanolaru/sift.email
+                SourceIdentifier: main
+                BuildSpec: backend/buildspec.yml
+            Triggers:
+                Webhook: true
+                FilterGroups:
+                    - - Type: EVENT
+                        Pattern: PUSH
+                      - Type: HEAD_REF
+                        Pattern: ^refs/heads/main$
+                      - Type: FILE_PATH
+                        Pattern: serverless.yml
+                    - - Type: EVENT
+                        Pattern: PUSH
+                      - Type: HEAD_REF
+                        Pattern: ^refs/heads/main$
+                      - Type: FILE_PATH
+                        Pattern: ^backend/.*
+            TimeoutInMinutes: 10
+    # frontend build
+    CodeBuildFrontend:
+        Type: AWS::CodeBuild::Project
+        Properties:
+            Name: ${self:custom.resourceName}_frontend
+            Description: Build & deploy ${self:custom.resourceName} frontend
+            ServiceRole: !GetAtt CodeBuildRole.Arn
+            Artifacts:
+                Type: no_artifacts
+            Environment:
+                Type: LINUX_CONTAINER
+                ComputeType: BUILD_GENERAL1_SMALL
+                Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+                EnvironmentVariables:
+                    - Name: UserPoolId
+                      Type: PLAINTEXT
+                      Value: !Ref UserPool
+                    - Name: UserPoolWebClientId
+                      Type: PLAINTEXT
+                      Value: !Ref UserPoolClient
+                    - Name: IdentityPool
+                      Type: PLAINTEXT
+                      Value: !Ref IdentityPool
+                    - Name: FrontendBucket
+                      Type: PLAINTEXT
+                      Value: !Ref FrontendBucket
+                    - Name: HttpApiUrl
+                      Type: PLAINTEXT
+                      Value: HttpApiUrl
+            Source:
+                Type: GITHUB
+                Location: https://github.com/stefanolaru/sift.email
+                SourceIdentifier: main
+                BuildSpec: frontend/buildspec.yml
+            Triggers:
+                Webhook: true
+                FilterGroups:
+                    - - Type: EVENT
+                        Pattern: PUSH
+                      - Type: HEAD_REF
+                        Pattern: ^refs/heads/main$
+                      - Type: FILE_PATH
+                        Pattern: ^frontend/.*
+            TimeoutInMinutes: 10
+
+    # codebuild backend role - admin access - to be restricted at a later time
+    CodeBuildRole:
+        Type: AWS::IAM::Role
+        Properties:
+            Path: /
+            RoleName: ${self:custom.resourceName}_codebuild
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                              - codebuild.amazonaws.com
+                      Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/AdministratorAccess

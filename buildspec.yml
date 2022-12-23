@@ -5,11 +5,11 @@ phases:
         runtime-versions:
             nodejs: latest
         commands:
-            - echo "npm install -g serverless"
-            - echo "sls -v"
+            - npm install -g serverless
+            - sls -v
     pre_build:
         commands:
-            - echo "npm install"
+            - npm install
     build:
         commands:
             - echo "we are in the build block"

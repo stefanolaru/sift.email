@@ -1,20 +1,18 @@
 version: 0.2
 
-phases: 
+phases:
     install:
         runtime-versions:
             nodejs: latest
         commands:
-            - echo "installing something"
+            - echo "npm install -g serverless"
     pre_build:
-        commands: 
+        commands:
             - echo "we are in the pre build phase"
     build:
         commands:
             - echo "we are in the build block"
             - echo "we will run some tests"
-            - grep -Fq "Congratulations" index.html
     post_build:
         commands:
             - echo "we are in the post build phase"
-            

@@ -11,6 +11,9 @@ csvSign:
         - httpApi:
               path: /csv/sign
               method: GET
+              authorizer:
+                  type: request
+                  name: CognitoAuth
 
 # check an uploaded CSV, return first row and total rows
 csvCheck:
@@ -24,6 +27,9 @@ csvCheck:
         - httpApi:
               path: /csv/check
               method: GET
+              authorizer:
+                  type: request
+                  name: CognitoAuth
 
 # private bulk validator
 csvSubmit:
@@ -38,3 +44,6 @@ csvSubmit:
         - httpApi:
               path: /csv/submit
               method: POST
+              authorizer:
+                  type: request
+                  name: CognitoAuth

@@ -1,0 +1,14 @@
+#
+# Cognito presignup - check for disposable emails
+cognitoPreSignup:
+    handler: backend/functions/users/pre_signup.handler
+
+# cognito preverification - create the DDB entry once the user validated the account
+cognitoPostConfirmation:
+    role: CognitoFunctionsRole
+    handler: backend/functions/users/post_confirmation.handler
+
+# post auth
+cognitoPostAuth:
+    role: CognitoFunctionsRole
+    handler: backend/functions/users/post_auth.handler

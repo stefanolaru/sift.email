@@ -16,9 +16,19 @@ exports.handler = async (event) => {
         body: "",
     };
 
+    // get user_id from authorizer
+    const user_id = event.requestContext.authorizer.jwt.claims.sub || null;
+
+    // no user, no luck ... unlikely thought
+    if (!user_id) {
+        response.body = JSON.stringify({
+            error: "Unauthorized access",
+        });
+        return response;
+    }
+
     // read and parse data
-    const data = JSON.parse(event.body),
-        user_id = "1234";
+    const data = JSON.parse(event.body);
 
     // stop if no data
     if (!data || !data.email) {

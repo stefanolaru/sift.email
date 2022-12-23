@@ -25,3 +25,6 @@ privateValidator:
         - httpApi:
               path: /check
               method: POST
+              authorizer:
+                  type: request
+                  name: CognitoAuth

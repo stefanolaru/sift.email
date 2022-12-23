@@ -2,6 +2,7 @@ service: sift
 
 custom:
     resourceName: ${self:service}_${self:provider.stage}
+    apiEndpoint: HttpApiUrl
     exportOutputs:
         include:
             - UserPoolId
@@ -35,11 +36,11 @@ provider:
         metrics: true
         cors: true
         shouldStartNameWithService: true
-        # authorizers:
-        #     Authorizer:
-        #         identitySource: $request.header.Authorization
-        #         issuerUrl: !GetAtt UserPool.ProviderURL
-        #         audience: !Ref UserPoolClient
+        authorizers:
+            CognitoAuth:
+                identitySource: $request.header.Authorization
+                issuerUrl: !GetAtt UserPool.ProviderURL
+                audience: !Ref UserPoolClient
     environment:
         STAGE: ${self:provider.stage}
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1 # keep alive 3rd party TCP connections
@@ -53,6 +54,7 @@ functions:
     - ${file(./backend/functions/list_processor/function.yml)}
     - ${file(./backend/functions/stream_consumer/function.yml)}
     - ${file(./backend/functions/event_listener/function.yml)}
+    - ${file(./backend/functions/users/function.yml)}
 
 resources:
     # Infra
@@ -61,7 +63,7 @@ resources:
     - ${file(./backend/infra/dynamodb.yml)}
     - ${file(./backend/infra/eventbridge.yml)}
     - ${file(./backend/infra/sns.yml)}
-    # - ${file(./backend/infra/cognito.yml)}
+    - ${file(./backend/infra/cognito.yml)}
 
     # Roles
     - ${file(./backend/functions/validator/role.yml)}
@@ -69,6 +71,7 @@ resources:
     - ${file(./backend/functions/list_processor/role.yml)}
     - ${file(./backend/functions/stream_consumer/role.yml)}
     - ${file(./backend/functions/event_listener/role.yml)}
+    - ${file(./backend/functions/users/role.yml)}
 
     # step function & role
     - ${file(./backend/step_functions/process_list/function.yml)}
@@ -76,12 +79,12 @@ resources:
 
     # Outputs for frontend
     - Outputs:
-          # UserPoolId:
-          #     Value: !Ref UserPool
-          # UserPoolWebClientId:
-          #     Value: !Ref UserPoolClient
-          # IdentityPoolId:
-          #     Value: !Ref IdentityPool
+          UserPoolId:
+              Value: !Ref UserPool
+          UserPoolWebClientId:
+              Value: !Ref UserPoolClient
+          IdentityPoolId:
+              Value: !Ref IdentityPool
           Bucket:
               Value: !Ref FrontendBucket
           # CloudFrontDistribution:
@@ -101,5 +104,6 @@ package:
         - "!tmp"
         - "!.github/**"
         - "!frontend"
+        - "!backend/email_templates"
 plugins:
     - serverless-export-outputs

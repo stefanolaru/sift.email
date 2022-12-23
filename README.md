@@ -4,7 +4,9 @@ A rewrite of an older project using Serverless, the project features multiple AW
 
 -   DynamoDB streams & stream consumer
 -   DynamoDB TTL
--   S3 Object Lifecycle
--   S3 Object events
+-   S3 Object Lifecycle & object events
+-   Eventbridge rules
 -   Step Functions
 -   SNS
+-   Cognito & lambda triggers
+-   API gateway auth w/ cognito

@@ -1,0 +1,112 @@
+Resources:
+    # user pool
+    UserPool:
+        Type: AWS::Cognito::UserPool
+        Properties:
+            UserPoolName: ${self:custom.resourceName}
+            AutoVerifiedAttributes:
+                - email
+            UsernameAttributes:
+                - email
+            Schema:
+                - Name: email
+                  AttributeDataType: String
+                  Mutable: true
+                - Name: name
+                  AttributeDataType: String
+                  Mutable: true
+            LambdaConfig:
+                PreSignUp: !GetAtt CognitoPreSignupLambdaFunction.Arn
+                PostConfirmation: !GetAtt CognitoPostConfirmationLambdaFunction.Arn
+                PostAuthentication: !GetAtt CognitoPostAuthLambdaFunction.Arn
+            VerificationMessageTemplate:
+                DefaultEmailOption: CONFIRM_WITH_CODE
+                EmailMessage: ${file(backend/email_templates/verification-code.html)}
+                EmailSubject: Your verification code.
+    # create the cognito pool client
+    UserPoolClient:
+        Type: AWS::Cognito::UserPoolClient
+        Properties:
+            ClientName: ${self:custom.resourceName}
+            PreventUserExistenceErrors: ENABLED
+            AllowedOAuthFlowsUserPoolClient: true
+            UserPoolId: !Ref UserPool
+            SupportedIdentityProviders:
+                - COGNITO
+            AllowedOAuthFlows:
+                - code
+            AllowedOAuthScopes:
+                - email
+                - openid
+                - profile
+            ExplicitAuthFlows:
+                - ALLOW_REFRESH_TOKEN_AUTH
+                - ALLOW_USER_SRP_AUTH
+            CallbackURLs:
+                - https://${self:custom.apiEndpoint}/access_token
+                - http://localhost:4000/access_token
+            LogoutURLs:
+                - https://${self:custom.apiEndpoint}
+    # create the identity pool
+    IdentityPool:
+        Type: AWS::Cognito::IdentityPool
+        Properties:
+            IdentityPoolName: ${self:custom.resourceName}
+            AllowUnauthenticatedIdentities: false
+            CognitoIdentityProviders:
+                - ClientId: !Ref UserPoolClient
+                  ProviderName: !GetAtt UserPool.ProviderName
+
+    # Cognito Authorized Role
+    CognitoAuthorizedRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Federated: cognito-identity.amazonaws.com
+                      Action:
+                          - sts:AssumeRoleWithWebIdentity
+                      Condition:
+                          StringEquals:
+                              "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+                          ForAnyValue:StringLike:
+                              "cognito-identity.amazonaws.com:amr": authenticated
+            Policies:
+                - PolicyName: CognitoAuthorizedPolicy
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          - Effect: "Allow"
+                            Action:
+                                - mobileanalytics:PutEvents
+                                - cognito-sync:*
+                                - cognito-identity:*
+                            Resource: "*"
+
+    # presignup permission to invoke lambda
+    CognitoPreSignupPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: cognito-idp.amazonaws.com
+            SourceArn: !GetAtt UserPool.Arn
+            FunctionName: !GetAtt CognitoPreSignupLambdaFunction.Arn
+    # preverification permission to invoke lambda
+    CognitoPostConfirmationPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: cognito-idp.amazonaws.com
+            SourceArn: !GetAtt UserPool.Arn
+            FunctionName: !GetAtt CognitoPostConfirmationLambdaFunction.Arn
+    # postauth permission to invoke lambda
+    CognitoPostAuthPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: cognito-idp.amazonaws.com
+            SourceArn: !GetAtt UserPool.Arn
+            FunctionName: !GetAtt CognitoPostAuthLambdaFunction.Arn

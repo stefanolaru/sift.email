@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+    install:
+        runtime-versions:
+            nodejs: latest
+        commands:
+            - npm --prefix frontend/ install
+    pre_build:
+        commands:
+            - echo "prebuild"
+    build:
+        commands:
+            - npm --prefix fronted/ run build
+    post_build:
+        commands:
+            - echo "we are in the post build phase"

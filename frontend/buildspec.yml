@@ -9,10 +9,11 @@ phases:
     pre_build:
         commands:
             - echo "create .env file"
-            - echo "UserPoolId = $UserPoolId
+            - cat > .env.prod <<EOL
+              UserPoolId = $UserPoolId
               UserPoolWebClientId = $UserPoolWebClientId
               IdentityPool = $IdentityPool
-              HttpApiUrl = $HttpApiUrl" > .env.prod
+              HttpApiUrl = $HttpApiUrl
     build:
         commands:
             - cat .env.prod

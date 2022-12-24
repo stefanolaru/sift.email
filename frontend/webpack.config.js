@@ -132,7 +132,5 @@ module.exports = (env, argv) => {
         );
     }
 
-    console.log(process.env);
-
     return config;
 };

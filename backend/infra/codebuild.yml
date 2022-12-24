@@ -60,7 +60,7 @@ Resources:
                       Value: !Ref FrontendBucket
                     - Name: HttpApiUrl
                       Type: PLAINTEXT
-                      Value: HttpApiUrl
+                      Value: !GetAtt HttpApi.ApiEndpoint
             Source:
                 Type: GITHUB
                 Location: https://github.com/stefanolaru/sift.email

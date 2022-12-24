@@ -94,7 +94,7 @@ resources:
           # CloudFrontDomain:
           #     Value: !GetAtt CloudFrontDistribution.DomainName
           ApiUrl:
-              Value: HttpApiUrl
+              Value: !GetAtt HttpApi.ApiEndpoint
 
 package:
     # exclude files from the package

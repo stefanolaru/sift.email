@@ -105,9 +105,12 @@ module.exports = (env, argv) => {
                 },
                 host: "lvh.me",
                 port: 3000,
-                https: {
-                    key: fs.readFileSync("lvh.me-key.pem"),
-                    cert: fs.readFileSync("lvh.me.pem"),
+                server: {
+                    type: "https",
+                    options: {
+                        key: fs.readFileSync("lvh.me-key.pem"),
+                        cert: fs.readFileSync("lvh.me.pem"),
+                    },
                 },
                 headers: {
                     "Access-Control-Allow-Origin": "*",
@@ -128,6 +131,8 @@ module.exports = (env, argv) => {
             })
         );
     }
+
+    console.log(process.env);
 
     return config;
 };

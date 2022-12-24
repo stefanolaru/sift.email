@@ -3,8 +3,8 @@ Resources:
         Type: AWS::CloudFront::Distribution
         Properties:
             DistributionConfig:
-                Aliases:
-                    - ${self:custom.domain.${self:provider.stage}}
+                # Aliases:
+                #     - ${self:custom.domain.${self:provider.stage}}
                 CustomErrorResponses:
                     - ErrorCachingMinTTL: 60
                       ErrorCode: 404
@@ -45,13 +45,13 @@ Resources:
                       DomainName: !GetAtt FrontendBucket.DomainName
                       Id: ${self:service}-${self:provider.stage}-frontend
                 PriceClass: PriceClass_All
-                ViewerCertificate:
-                    AcmCertificateArn: !Ref SSLCertificate
-                    MinimumProtocolVersion: TLSv1.1_2016
-                    SslSupportMethod: sni-only
+                # ViewerCertificate:
+                #     AcmCertificateArn: !Ref SSLCertificate
+                #     MinimumProtocolVersion: TLSv1.1_2016
+                #     SslSupportMethod: sni-only
     # ACM
-    SSLCertificate:
-        Type: AWS::CertificateManager::Certificate
-        Properties:
-            DomainName: ${self:custom.domain.${self:provider.stage}}
-            ValidationMethod: DNS
+    # SSLCertificate:
+    #     Type: AWS::CertificateManager::Certificate
+    #     Properties:
+    #         DomainName: ${self:custom.domain.${self:provider.stage}}
+    #         ValidationMethod: DNS

@@ -58,6 +58,9 @@ Resources:
                     - Name: FrontendBucket
                       Type: PLAINTEXT
                       Value: !Ref FrontendBucket
+                    - Name: CloudFrontDistribution
+                      Type: PLAINTEXT
+                      Value: !Ref CloudFrontDistribution
                     - Name: HttpApiUrl
                       Type: PLAINTEXT
                       Value: !GetAtt HttpApi.ApiEndpoint

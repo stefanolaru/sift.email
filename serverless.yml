@@ -60,7 +60,7 @@ functions:
 resources:
     # Infra
     - ${file(./backend/infra/s3.yml)}
-    # - ${file(./backend/infra/cloudfront.yml)}
+    - ${file(./backend/infra/cloudfront.yml)}
     - ${file(./backend/infra/dynamodb.yml)}
     - ${file(./backend/infra/eventbridge.yml)}
     - ${file(./backend/infra/sns.yml)}
@@ -89,10 +89,10 @@ resources:
               Value: !Ref IdentityPool
           Bucket:
               Value: !Ref FrontendBucket
-          # CloudFrontDistribution:
-          #     Value: !Ref CloudFrontDistribution
-          # CloudFrontDomain:
-          #     Value: !GetAtt CloudFrontDistribution.DomainName
+          CloudFrontDistribution:
+              Value: !Ref CloudFrontDistribution
+          CloudFrontDomain:
+              Value: !GetAtt CloudFrontDistribution.DomainName
           ApiUrl:
               Value: !GetAtt HttpApi.ApiEndpoint
 

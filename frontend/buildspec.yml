@@ -14,6 +14,7 @@ phases:
               UserPoolWebClientId = $UserPoolWebClientId
               IdentityPool = $IdentityPool
               HttpApiUrl = $HttpApiUrl
+              EOL
     build:
         commands:
             - cat .env.prod

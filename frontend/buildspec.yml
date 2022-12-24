@@ -8,10 +8,16 @@ phases:
             - npm --prefix frontend/ install
     pre_build:
         commands:
-            - echo "prebuild $FrontendBucket"
+            - echo "create .env file"
+            - echo "[server]
+              UserPoolId = $UserPoolId
+              UserPoolWebClientId = $UserPoolWebClientId
+              IdentityPool = $IdentityPool
+              HttpApiUrl = $HttpApiUrl" > .env.prod
     build:
         commands:
             - npm --prefix frontend/ run build
     post_build:
         commands:
-            - echo "we are in the post build phase"
+            - echo "sync S3 bucket"
+            - aws s3 sync --acl public-read ./frontend/build s3://$FrontendBucket

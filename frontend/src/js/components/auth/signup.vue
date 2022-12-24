@@ -6,7 +6,7 @@ import {
 } from "amazon-cognito-identity-js";
 
 export default {
-    name: "Login Form",
+    name: "Signup Form",
     data() {
         return {
             username: "",
@@ -108,10 +108,12 @@ export default {
 
         <h3
             class="mb-3 text-3xl font-bold"
-            v-text="passChallenge ? 'Password Update Required' : 'Login'"
+            v-text="
+                passChallenge ? 'Password Update Required' : 'Create an account'
+            "
         ></h3>
 
-        <div v-if="!passChallenge">
+        <div class="mt-3" v-if="!passChallenge">
             <label class="block font-semibold">Email</label>
             <input
                 type="email"
@@ -123,33 +125,14 @@ export default {
                 required
             />
         </div>
-        <div class="mt-3">
-            <label
-                class="block font-semibold"
-                v-text="passChallenge ? 'New Password' : 'Password'"
-            ></label>
-            <input
-                type="password"
-                name="password"
-                class="w-full h-5 px-3 py-5 mt-1 border rounded-md hover:outline-none focus:outline-none focus:ring-indigo-500 focus:ring-1"
-                :value="password"
-                @input="password = $event.target.value"
-                :placeholder="
-                    passChallenge ? 'Your New Password' : 'Your Password'
-                "
-                required
-            />
-        </div>
+
         <div class="flex items-baseline justify-between mt-6">
             <button
                 type="submit"
                 :disabled="loading"
                 class="px-12 py-3 text-white bg-indigo-500 rounded-md hover:bg-indigo-600"
-                v-text="loading ? 'Please wait ...' : 'Login'"
+                v-text="loading ? 'Please wait ...' : 'Create Account'"
             ></button>
-            <router-link :to="'auth/forgot-password'" class="forgot-pass"
-                >Forgot Password?</router-link
-            >
         </div>
     </form>
 </template>

@@ -10,10 +10,10 @@ phases:
         commands:
             - echo "create .env file"
             - cat > .env.prod << EOF
-            - UserPoolId = "$UserPoolId"
-            - UserPoolWebClientId = "$UserPoolWebClientId"
-            - IdentityPool = "$IdentityPool"
-            - HttpApiUrl = "$HttpApiUrl"
+            - UserPoolId = $UserPoolId
+            - UserPoolWebClientId = $UserPoolWebClientId
+            - IdentityPool = $IdentityPool
+            - HttpApiUrl = $HttpApiUrl
             - EOF
     build:
         commands:

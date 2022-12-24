@@ -9,15 +9,16 @@ phases:
     pre_build:
         commands:
             - echo "create .env file"
-            - echo "[server]
-              UserPoolId = $UserPoolId
+            - echo "UserPoolId = $UserPoolId
               UserPoolWebClientId = $UserPoolWebClientId
               IdentityPool = $IdentityPool
               HttpApiUrl = $HttpApiUrl" > .env.prod
     build:
         commands:
+            - cat .env.prod
             - npm --prefix frontend/ run build
     post_build:
         commands:
             - echo "sync S3 bucket"
             - aws s3 sync --acl public-read ./frontend/build s3://$FrontendBucket
+            - aws cloudfront create-invalidation --distribution-id $CloudFrontDistribution --paths '/index.html'

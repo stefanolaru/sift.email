@@ -2,7 +2,6 @@ service: sift
 
 custom:
     resourceName: ${self:service}_${self:provider.stage}
-    apiEndpoint: HttpApiUrl
     exportOutputs:
         include:
             - UserPoolId
@@ -11,14 +10,18 @@ custom:
             - Bucket
             - CloudFrontDistribution
             - CloudFrontDomain
-            - HttpApiUrl
+            - ApiUrl
+            - ApiDomain
             - Region
         output:
             file: ./.env.${self:provider.stage}
             format: toml
-    domain:
+    appDomain:
         dev: app-dev.sift.email
         prod: app.sift.email
+    apiDomain:
+        dev: api-dev.sift.email
+        prod: api.sift.email
 
 provider:
     name: aws
@@ -61,6 +64,9 @@ functions:
 resources:
     # Infra
     - ${file(./backend/infra/s3.yml)}
+    - ${file(./backend/infra/acm.yml)}
+    - ${file(./backend/infra/apg.yml)}
+    - ${file(./backend/infra/route53.yml)}
     - ${file(./backend/infra/cloudfront.yml)}
     - ${file(./backend/infra/dynamodb.yml)}
     - ${file(./backend/infra/eventbridge.yml)}
@@ -97,6 +103,8 @@ resources:
               Value: !GetAtt CloudFrontDistribution.DomainName
           ApiUrl:
               Value: !GetAtt HttpApi.ApiEndpoint
+          ApiDomain:
+              Value: ${self:custom.apiDomain.${self:provider.stage}}
           Region:
               Value: !Ref AWS::Region
 

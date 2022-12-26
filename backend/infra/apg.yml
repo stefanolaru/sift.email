@@ -1,0 +1,13 @@
+Resources:
+    ApiDomainName:
+        Type: AWS::ApiGatewayV2::DomainName
+        Properties:
+            DomainName: ${self:custom.apiDomain.${self:provider.stage}}
+            DomainNameConfigurations:
+                - CertificateArn: !Ref ApiSSLCertificate
+    ApiDomainMapping:
+        Type: AWS::ApiGatewayV2::ApiMapping
+        Properties:
+            Stage: $default
+            DomainName: !Ref ApiDomainName
+            ApiId: !Ref HttpApi

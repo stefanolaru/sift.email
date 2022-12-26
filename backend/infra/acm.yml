@@ -1,0 +1,13 @@
+Resources:
+    # app.domain.com SSL certificate
+    AppSSLCertificate:
+        Type: AWS::CertificateManager::Certificate
+        Properties:
+            DomainName: ${self:custom.appDomain.${self:provider.stage}}
+            ValidationMethod: DNS
+    # api.domain.com SSL certificate
+    ApiSSLCertificate:
+        Type: AWS::CertificateManager::Certificate
+        Properties:
+            DomainName: ${self:custom.apiDomain.${self:provider.stage}}
+            ValidationMethod: DNS

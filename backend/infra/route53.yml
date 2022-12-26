@@ -1,0 +1,29 @@
+Resources:
+    # point subdomain to Cloudfront distro
+    Route53AppRecordSetGroup:
+        Type: AWS::Route53::RecordSetGroup
+        Properties:
+            # keep the . suffix
+            HostedZoneName: sift.email.
+            # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html#cfn-route53-aliastarget-hostedzoneid
+            RecordSets:
+                - Name: ${self:custom.appDomain.${self:provider.stage}}
+                  Type: A
+                  AliasTarget:
+                      DNSName: !GetAtt CloudFrontDistribution.DomainName
+                      EvaluateTargetHealth: false
+                      HostedZoneId: Z2FDTNDATAQYW2 # leave hardcoded, don't confuse w/ !Ref HostedZoneId
+    # point subdomain to Api Gateway
+    Route53ApiRecordSetGroup:
+        Type: AWS::Route53::RecordSetGroup
+        Properties:
+            # keep the . suffix
+            HostedZoneName: sift.email.
+            # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html#cfn-route53-aliastarget-hostedzoneid
+            RecordSets:
+                - Name: ${self:custom.apiDomain.${self:provider.stage}}
+                  Type: A
+                  AliasTarget:
+                      DNSName: !GetAtt ApiDomainName.RegionalDomainName
+                      EvaluateTargetHealth: false
+                      HostedZoneId: !GetAtt ApiDomainName.RegionalHostedZoneId

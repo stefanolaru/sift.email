@@ -1,0 +1,14 @@
+# post auth
+userProfile:
+    role: UsersRole
+    handler: backend/functions/users/profile.handler
+    environment:
+        DDB_TABLE: !Ref Table
+    events:
+        # create
+        - httpApi:
+              path: /profile
+              method: GET
+              authorizer:
+                  type: request
+                  name: CognitoAuth

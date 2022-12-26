@@ -53,13 +53,13 @@ provider:
     logRetentionInDays: 7 # no of days to retain the Lambda logs in CloudWatch
 
 functions:
-    # validator
     - ${file(./backend/functions/validator/function.yml)}
     - ${file(./backend/functions/csv/function.yml)}
     - ${file(./backend/functions/list_processor/function.yml)}
     - ${file(./backend/functions/stream_consumer/function.yml)}
     - ${file(./backend/functions/event_listener/function.yml)}
     - ${file(./backend/functions/auth/function.yml)}
+    - ${file(./backend/functions/users/function.yml)}
 
 resources:
     # Infra
@@ -82,6 +82,7 @@ resources:
     - ${file(./backend/functions/stream_consumer/role.yml)}
     - ${file(./backend/functions/event_listener/role.yml)}
     - ${file(./backend/functions/auth/role.yml)}
+    - ${file(./backend/functions/users/role.yml)}
 
     # step function & role
     - ${file(./backend/step_functions/process_list/function.yml)}

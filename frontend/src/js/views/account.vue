@@ -8,3 +8,29 @@
         </div>
     </div>
 </template>
+<script>
+export default {
+    data() {
+        return {
+            profile: null,
+        };
+    },
+    created() {
+        this.$http
+            .get("https://" + process.env.ApiDomain + "/profile", {
+                params: {},
+                headers: {
+                    Authorization:
+                        this.$auth.getCurrentUser().signInUserSession
+                            .accessToken.jwtToken,
+                },
+            })
+            .then((res) => {
+                console.log(res);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    },
+};
+</script>

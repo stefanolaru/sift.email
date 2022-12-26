@@ -12,6 +12,7 @@ custom:
             - CloudFrontDistribution
             - CloudFrontDomain
             - HttpApiUrl
+            - Region
         output:
             file: ./.env.${self:provider.stage}
             format: toml
@@ -55,7 +56,7 @@ functions:
     - ${file(./backend/functions/list_processor/function.yml)}
     - ${file(./backend/functions/stream_consumer/function.yml)}
     - ${file(./backend/functions/event_listener/function.yml)}
-    - ${file(./backend/functions/users/function.yml)}
+    - ${file(./backend/functions/auth/function.yml)}
 
 resources:
     # Infra
@@ -64,6 +65,7 @@ resources:
     - ${file(./backend/infra/dynamodb.yml)}
     - ${file(./backend/infra/eventbridge.yml)}
     - ${file(./backend/infra/sns.yml)}
+    - ${file(./backend/infra/ses.yml)}
     - ${file(./backend/infra/cognito.yml)}
     - ${file(./backend/infra/codebuild.yml)}
 
@@ -73,7 +75,7 @@ resources:
     - ${file(./backend/functions/list_processor/role.yml)}
     - ${file(./backend/functions/stream_consumer/role.yml)}
     - ${file(./backend/functions/event_listener/role.yml)}
-    - ${file(./backend/functions/users/role.yml)}
+    - ${file(./backend/functions/auth/role.yml)}
 
     # step function & role
     - ${file(./backend/step_functions/process_list/function.yml)}
@@ -95,6 +97,8 @@ resources:
               Value: !GetAtt CloudFrontDistribution.DomainName
           ApiUrl:
               Value: !GetAtt HttpApi.ApiEndpoint
+          Region:
+              Value: !Ref AWS::Region
 
 package:
     # exclude files from the package

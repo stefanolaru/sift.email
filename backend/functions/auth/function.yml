@@ -1,0 +1,30 @@
+# Cognito presignup - check for disposable emails
+cognitoPreSignup:
+    handler: backend/functions/auth/pre_signup.handler
+
+# create auth challenge
+cognitoCreateChallenge:
+    role: CognitoFunctionsRole
+    handler: backend/functions/auth/create_challenge.handler
+    environment:
+        EMAIL_TEMPLATE: !Ref AuthChallengeTemplate
+        EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}
+        EMAIL_FROM_NAME: ${ssm:/SIFT/EMAIL_FROM_NAME}
+
+# verify auth challenge
+cognitoVerifyChallenge:
+    role: CognitoFunctionsRole
+    handler: backend/functions/auth/verify_challenge.handler
+
+# define auth challenge
+cognitoDefineChallenge:
+    role: CognitoFunctionsRole
+    handler: backend/functions/auth/define_challenge.handler
+
+# post auth
+cognitoPostAuth:
+    role: CognitoFunctionsRole
+    handler: backend/functions/auth/post_auth.handler
+    environment:
+        DDB_TABLE: !Ref Table
+        WELCOME_CREDITS: ${ssm:/SIFT/WELCOME_CREDITS}

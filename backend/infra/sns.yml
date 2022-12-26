@@ -9,6 +9,11 @@ Resources:
         Type: AWS::SNS::Topic
         Properties:
             TopicName: ${self:custom.resourceName}_processing_end
+    # list processing done
+    SESFeedbackTopic:
+        Type: AWS::SNS::Topic
+        Properties:
+            TopicName: ${self:custom.resourceName}_ses_feedback
     # allow topic to invoke lambda
     LambdaInvokePermission:
         Type: AWS::Lambda::Permission

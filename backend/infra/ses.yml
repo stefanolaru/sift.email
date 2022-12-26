@@ -1,0 +1,34 @@
+Conditions:
+    IsProduction: !Equals
+        - ${self:provider.stage}
+        - prod
+
+Resources:
+    # ses config set
+    SESConfigSet:
+        Type: AWS::SES::ConfigurationSet
+        Properties:
+            Name: ${self:custom.resourceName}
+            SuppressionOptions:
+                SuppressedReasons:
+                    - BOUNCE
+                    - COMPLAINT
+    # validate sending domain in prod
+    SESDomain:
+        Condition: IsProduction
+        Type: AWS::SES::EmailIdentity
+        Properties:
+            EmailIdentity: sift.email
+            ConfigurationSetAttributes:
+                ConfigurationSetName: !Ref SESConfigSet
+            FeedbackAttributes:
+                EmailForwardingEnabled: false
+
+    # auth challenge template
+    AuthChallengeTemplate:
+        Type: AWS::SES::Template
+        Properties:
+            Template:
+                TemplateName: ${self:custom.resourceName}_auth_challenge
+                SubjectPart: ${ssm:/SIFT/VERIFICATION_SUBJECT}
+                HtmlPart: ${file(backend/email_templates/verification-code.html)}

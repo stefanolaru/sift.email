@@ -22,8 +22,14 @@ Resources:
                           - Effect: Allow
                             Action:
                                 - dynamodb:PutItem
+                                - dynamodb:UpdateItem
                             Resource:
                                 - !GetAtt Table.Arn
+                            # SES
+                          - Effect: Allow
+                            Action:
+                                - ses:SendTemplatedEmail
+                            Resource: "*"
                           # CW
                           - Effect: Allow
                             Action:

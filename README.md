@@ -9,5 +9,6 @@ A rewrite of an older project using Serverless, the project features multiple AW
 -   Step Functions
 -   SNS
 -   Cognito & lambda triggers
+-   Cognito passwordless signup
 -   API gateway auth w/ cognito
 -   CI/CD CodeDeploy - GitHub integration

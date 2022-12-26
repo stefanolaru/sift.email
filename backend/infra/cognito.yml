@@ -17,36 +17,20 @@ Resources:
                   Mutable: true
             LambdaConfig:
                 PreSignUp: !GetAtt CognitoPreSignupLambdaFunction.Arn
-                PostConfirmation: !GetAtt CognitoPostConfirmationLambdaFunction.Arn
                 PostAuthentication: !GetAtt CognitoPostAuthLambdaFunction.Arn
-            VerificationMessageTemplate:
-                DefaultEmailOption: CONFIRM_WITH_CODE
-                EmailMessage: ${file(backend/email_templates/verification-code.html)}
-                EmailSubject: Your verification code.
+                CreateAuthChallenge: !GetAtt CognitoCreateChallengeLambdaFunction.Arn
+                VerifyAuthChallengeResponse: !GetAtt CognitoVerifyChallengeLambdaFunction.Arn
+                DefineAuthChallenge: !GetAtt CognitoDefineChallengeLambdaFunction.Arn
     # create the cognito pool client
     UserPoolClient:
         Type: AWS::Cognito::UserPoolClient
         Properties:
             ClientName: ${self:custom.resourceName}
             PreventUserExistenceErrors: ENABLED
-            AllowedOAuthFlowsUserPoolClient: true
             UserPoolId: !Ref UserPool
-            SupportedIdentityProviders:
-                - COGNITO
-            AllowedOAuthFlows:
-                - code
-            AllowedOAuthScopes:
-                - email
-                - openid
-                - profile
             ExplicitAuthFlows:
                 - ALLOW_REFRESH_TOKEN_AUTH
-                - ALLOW_USER_SRP_AUTH
-            CallbackURLs:
-                - https://${self:custom.apiEndpoint}/access_token
-                - http://localhost:4000/access_token
-            LogoutURLs:
-                - https://${self:custom.apiEndpoint}
+                - ALLOW_CUSTOM_AUTH
     # create the identity pool
     IdentityPool:
         Type: AWS::Cognito::IdentityPool
@@ -94,14 +78,6 @@ Resources:
             Principal: cognito-idp.amazonaws.com
             SourceArn: !GetAtt UserPool.Arn
             FunctionName: !GetAtt CognitoPreSignupLambdaFunction.Arn
-    # preverification permission to invoke lambda
-    CognitoPostConfirmationPermission:
-        Type: AWS::Lambda::Permission
-        Properties:
-            Action: lambda:InvokeFunction
-            Principal: cognito-idp.amazonaws.com
-            SourceArn: !GetAtt UserPool.Arn
-            FunctionName: !GetAtt CognitoPostConfirmationLambdaFunction.Arn
     # postauth permission to invoke lambda
     CognitoPostAuthPermission:
         Type: AWS::Lambda::Permission
@@ -110,3 +86,27 @@ Resources:
             Principal: cognito-idp.amazonaws.com
             SourceArn: !GetAtt UserPool.Arn
             FunctionName: !GetAtt CognitoPostAuthLambdaFunction.Arn
+    # create challenge
+    CognitoCreateChallengePermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: cognito-idp.amazonaws.com
+            SourceArn: !GetAtt UserPool.Arn
+            FunctionName: !GetAtt CognitoCreateChallengeLambdaFunction.Arn
+    # verify challenge
+    CognitoVerifyChallengePermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: cognito-idp.amazonaws.com
+            SourceArn: !GetAtt UserPool.Arn
+            FunctionName: !GetAtt CognitoVerifyChallengeLambdaFunction.Arn
+    # verify challenge
+    CognitoDefineChallengePermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: cognito-idp.amazonaws.com
+            SourceArn: !GetAtt UserPool.Arn
+            FunctionName: !GetAtt CognitoDefineChallengeLambdaFunction.Arn

@@ -6,3 +6,10 @@ listProcessingFinished:
     role: EventListenerRole
     environment:
         DDB_TABLE: !Ref Table
+# ses bounce/deliver/complaints
+sesFeedback:
+    handler: backend/functions/event_listener/ses_feedback.handler
+    timeout: 10
+    role: EventListenerRole
+    environment:
+        DDB_TABLE: !Ref Table

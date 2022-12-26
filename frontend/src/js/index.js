@@ -1,9 +1,5 @@
-import {
-    AuthenticationDetails,
-    CognitoUserPool,
-    CognitoUser,
-} from "amazon-cognito-identity-js";
 import { createApp } from "vue";
+import Auth from "./auth";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -13,13 +9,11 @@ import router from "./router";
 const app = createApp({
     name: "sift.email",
     data() {
-        return {
-            user: null,
-        };
+        return {};
     },
     computed: {
         isAuthenticated() {
-            return this.user != null;
+            return this.$auth.getCurrentUser() != null;
         },
     },
     created() {
@@ -28,6 +22,7 @@ const app = createApp({
     },
 });
 
+app.config.globalProperties.$auth = Auth;
 app.config.globalProperties.$http = axios;
 app.config.globalProperties.$swal = Swal;
 app.use(router);

@@ -21,6 +21,7 @@ Resources:
                           # DynamoDB allow item update and stream related operations
                           - Effect: Allow
                             Action:
+                                - dynamodb:PutItem
                                 - dynamodb:UpdateItem
                             Resource:
                                 - !GetAtt Table.Arn

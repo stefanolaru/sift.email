@@ -34,6 +34,7 @@ exports.handler = async (event, context, callback) => {
                     created_at: Math.floor(ts / 1000),
                     GSI: "user",
                     entity_type: "user",
+                    user_email: event.request.userAttributes.email,
                     credits: parseInt(process.env.WELCOME_CREDITS), // free credits on account confirmation
                 }),
             })

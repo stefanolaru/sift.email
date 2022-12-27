@@ -36,6 +36,10 @@
         "webpackbar": "^5.0.2"
     },
     "dependencies": {
+        "@uppy/aws-s3-multipart": "^3.1.1",
+        "@uppy/core": "^3.0.4",
+        "@uppy/drag-drop": "^3.0.1",
+        "@uppy/progress-bar": "^3.0.1",
         "amazon-cognito-identity-js": "^6.1.1",
         "axios": "^1.2.1",
         "sweetalert2": "^11.4.8",

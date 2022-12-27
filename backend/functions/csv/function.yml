@@ -1,6 +1,6 @@
 # sign request for csv upload
-csvSign:
-    handler: backend/functions/csv/sign.handler
+csvUpload:
+    handler: backend/functions/csv/upload.handler
     memorySize: 256
     timeout: 28
     role: CsvUtilsRole
@@ -10,7 +10,20 @@ csvSign:
         # get the signed request for uploader
         - httpApi:
               path: /csv/sign
-              method: GET
+              method: POST
+              authorizer:
+                  type: request
+                  name: CognitoAuth
+        - httpApi:
+              path: /csv/startupload
+              method: POST
+              authorizer:
+                  type: request
+                  name: CognitoAuth
+        # upload end
+        - httpApi:
+              path: /csv/completeupload
+              method: POST
               authorizer:
                   type: request
                   name: CognitoAuth

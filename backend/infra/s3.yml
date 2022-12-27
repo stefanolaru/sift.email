@@ -47,3 +47,17 @@ Resources:
             NotificationConfiguration:
                 EventBridgeConfiguration:
                     EventBridgeEnabled: true
+
+            # CORS config - allow direct CSV uploading
+            CorsConfiguration:
+                CorsRules:
+                    - AllowedHeaders:
+                          - "*"
+                      AllowedMethods:
+                          - PUT
+                      AllowedOrigins:
+                          # - https://${self:custom.appDomain.${self:provider.stage}}
+                          - "*"
+                      ExposedHeaders:
+                          - ETag
+                      Id: AllowPutFromApp

@@ -6,14 +6,19 @@
             account
             <router-link :to="'logout'" class="">Logout</router-link>
         </div>
+        <uploader></uploader>
     </div>
 </template>
 <script>
+import Uploader from "./uploader.vue";
 export default {
     data() {
         return {
             profile: null,
         };
+    },
+    components: {
+        Uploader,
     },
     created() {
         this.$http

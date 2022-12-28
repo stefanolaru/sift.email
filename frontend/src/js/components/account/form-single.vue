@@ -3,11 +3,34 @@ export default {
     data() {
         return {
             email: "",
+            loading: false,
         };
     },
     methods: {
         verify() {
-            console.log(this.email);
+            this.loading = true;
+            this.$http
+                .post(
+                    "https://" + process.env.ApiDomain + "/check",
+                    {
+                        email: this.email,
+                    },
+                    {
+                        headers: {
+                            Authorization:
+                                this.$auth.getCurrentUser().signInUserSession
+                                    .accessToken.jwtToken,
+                        },
+                    }
+                )
+                .then((res) => {
+                    console.log(res.data);
+                    this.loading = false;
+                })
+                .catch((err) => {
+                    console.log(err);
+                    this.loading = false;
+                });
         },
     },
 };
@@ -23,10 +46,10 @@ export default {
         <div class="flex items-baseline justify-between mt-6">
             <button
                 type="submit"
+                :disabled="loading"
                 class="px-12 py-3 text-white bg-indigo-500 rounded-md hover:bg-indigo-600"
-            >
-                Submit
-            </button>
+                v-text="loading ? 'Please wait ...' : 'Submit'"
+            ></button>
         </div>
     </form>
 </template>

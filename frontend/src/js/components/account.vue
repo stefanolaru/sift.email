@@ -54,6 +54,10 @@ export default {
                 <uploader @processed="generateListPreview"></uploader>
             </div>
         </template>
-        <list-preview></list-preview>
+        <list-preview
+            v-else
+            :summary="listSummary"
+            :csv="csvFile"
+        ></list-preview>
     </div>
 </template>

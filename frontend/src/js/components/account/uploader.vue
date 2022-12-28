@@ -60,7 +60,12 @@ export default {
             this.uppy
                 .use(DragDrop, {
                     target: "#uploader",
-                    note: "CSV files",
+                    locale: {
+                        strings: {
+                            dropHereOr: "Drag and drop your list",
+                        },
+                    },
+                    note: "Your email list in CSV format",
                 })
                 .use(ProgressBar, {
                     target: ".uppy-progress",
@@ -214,3 +219,8 @@ export default {
         </table>
     </div>
 </template>
+<style>
+.uppy-DragDrop-label {
+    font-weight: bold;
+}
+</style>

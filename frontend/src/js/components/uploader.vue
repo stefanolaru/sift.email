@@ -48,7 +48,7 @@ export default {
                     // hideAfterFinish: true,
                 })
                 .use(AwsS3Multipart, {
-                    limit: 1,
+                    limit: 5,
                     createMultipartUpload(file) {
                         return vm.$http
                             .post(

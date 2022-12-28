@@ -78,6 +78,10 @@ exports.handler = async (event) => {
                 .createMultipartUpload({
                     Bucket: process.env.S3_BUCKET,
                     Key: key,
+                    Metadata: {
+                        user_id: user_id.toString(),
+                        request_id: ksuid.string.toString(),
+                    },
                 })
                 .promise()
                 .then((res) => {

@@ -19,6 +19,13 @@ Resources:
                 BlockPublicPolicy: true
                 IgnorePublicAcls: true
                 RestrictPublicBuckets: true
+
+            # enable bucket encryption
+            BucketEncryption:
+                ServerSideEncryptionConfiguration:
+                    - ServerSideEncryptionByDefault:
+                          SSEAlgorithm: "AES256"
+
             # autodelete orphan files
             LifecycleConfiguration:
                 Rules:

@@ -1,10 +1,9 @@
 <script>
-import mockdata from "./mock.json";
 export default {
-    // props: ["summary", "csv"],
+    props: ["summary", "csv"],
     data() {
         return {
-            summary: mockdata,
+            // summary: mockdata,
             columnIdx: 0,
         };
     },

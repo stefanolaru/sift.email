@@ -1,0 +1,228 @@
+{
+    "preview": [
+        [
+            "first_name",
+            "last_name",
+            "id",
+            "email",
+            "opens",
+            "clicks",
+            "bounce",
+            "unsubscribe"
+        ],
+        [
+            "Brett",
+            "Cooper",
+            "7405231",
+            "bcooper@cosmorepartners.com",
+            "3",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Aaron Baum",
+            "",
+            "7405232",
+            "aaron@onefamilyproperty.com",
+            "1",
+            "0",
+            "0",
+            "0"
+        ],
+        ["Rich Feibus", "", "7405233", "bfeib@aol.com", "1", "0", "0", "0"],
+        [
+            "Chad Murray",
+            "",
+            "7405234",
+            "cmurray@rio-realestate.com",
+            "1",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Paul Joyner",
+            "",
+            "7405235",
+            "paul.joyner@bankatcity.com",
+            "1",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Robert Chalfin",
+            "",
+            "7405236",
+            "bob@chalfin.com",
+            "0",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Josh Avidan",
+            "",
+            "7405237",
+            "josh@avidanmgmt.com",
+            "0",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Mushtak",
+            "Khatri",
+            "7405238",
+            "mkhatri@tabanigroup.com",
+            "0",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Maxwell Karl",
+            "Ullman",
+            "7405239",
+            "mullman@growthproperty.us",
+            "0",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Patrick Agee",
+            "",
+            "7405240",
+            "pagee@advantagerealtygroup.com",
+            "0",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Terry Payne",
+            "",
+            "7405241",
+            "paynesland@sbcglobal.net",
+            "3",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Simon Alishaev",
+            "",
+            "7405242",
+            "alib4you@aol.com",
+            "1",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Anthony Blanco",
+            "",
+            "7405243",
+            "anthony.blanco@tscg.com",
+            "0",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Christa Collins",
+            "",
+            "7405244",
+            "ccollins@thegibsoncompany.com",
+            "1",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Darrin Nishi",
+            "",
+            "7405245",
+            "darrin@tripeakco.com",
+            "1",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Jonathan Simon",
+            "",
+            "7405246",
+            "jhsimon@simondev.com",
+            "0",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "John Montagna",
+            "",
+            "7405247",
+            "john@tristatecommercialre.com",
+            "1",
+            "0",
+            "0",
+            "0"
+        ],
+        ["Joseph Simone", "", "7405248", "js@simdev.com", "0", "0", "0", "0"],
+        [
+            "Melissa Birnbaum",
+            "",
+            "7405249",
+            "mbirnbaum@simdev.com",
+            "1",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Nick Taylor",
+            "",
+            "7405250",
+            "ntaylor@torreyfinancial.com",
+            "2",
+            "0",
+            "0",
+            "0"
+        ],
+        ["Simon Lou", "", "7405251", "nyre107@aol.com", "0", "0", "0", "0"],
+        [
+            "Robert",
+            "Holland",
+            "7405252",
+            "rholland@kislakrealty.com",
+            "0",
+            "0",
+            "1",
+            "0"
+        ],
+        [
+            "Rob Sina",
+            "",
+            "7405253",
+            "robert@sinacompanies.com",
+            "0",
+            "0",
+            "0",
+            "0"
+        ],
+        [
+            "Sam Adler",
+            "",
+            "7405254",
+            "sadler@tsgproperties.com",
+            "1",
+            "0",
+            "0",
+            "0"
+        ]
+    ],
+    "total_rows": 285
+}

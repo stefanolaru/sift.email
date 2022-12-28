@@ -1,24 +1,19 @@
-<template>
-    <div
-        class="flex p-12 mx-auto mt-24 bg-white rounded-sm sm:w-full md:w-1/2 lg:w-1/3"
-    >
-        <div>
-            account
-            <router-link :to="'logout'" class="">Logout</router-link>
-        </div>
-        <uploader></uploader>
-    </div>
-</template>
 <script>
-import Uploader from "./uploader.vue";
+import Uploader from "./account/uploader.vue";
+import FormSingle from "./account/form-single.vue";
+import ListPreview from "./account/list-preview.vue";
 export default {
     data() {
         return {
             profile: null,
+            listSummary: null,
+            csvFile: null,
         };
     },
     components: {
         Uploader,
+        FormSingle,
+        ListPreview,
     },
     created() {
         this.$http
@@ -37,5 +32,28 @@ export default {
                 console.log(err);
             });
     },
+    methods: {
+        generateListPreview(csvFile, listSummary) {
+            this.csvFile = csvFile;
+            this.listSummary = listSummary;
+        },
+    },
 };
 </script>
+<template>
+    <div class="max-w-6xl p-12 mx-auto mt-24 bg-white rounded-sm sm:w-full">
+        <template v-if="!listSummary">
+            <div class="grid grid-cols-2 gap-12">
+                <div>
+                    <h2 class="mb-3 text-4xl font-bold">
+                        Remove invalid emails from your list
+                    </h2>
+                    <p>Check if an email address really exists.</p>
+                    <form-single></form-single>
+                </div>
+                <uploader @processed="generateListPreview"></uploader>
+            </div>
+        </template>
+        <list-preview></list-preview>
+    </div>
+</template>

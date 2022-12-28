@@ -101,6 +101,15 @@ exports.handler = async (event) => {
             // parse data from event body
             data = JSON.parse(event.body);
 
+            // get csv signed preview url
+            const previewUrl = await s3.getSignedUrlPromise("getObject", {
+                Bucket: process.env.S3_BUCKET,
+                Expires: 600,
+                Key: data.key
+                    .replace("temp/", "parsed/")
+                    .replace("/data.csv", "/preview.json"),
+            });
+
             // complete multipart upload
             response.body = await s3
                 .completeMultipartUpload({
@@ -115,6 +124,7 @@ exports.handler = async (event) => {
                 .then((res) => {
                     return {
                         key: res.Key,
+                        preview_url: previewUrl,
                     };
                 })
                 .catch((err) => {

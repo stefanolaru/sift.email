@@ -13,6 +13,13 @@ export default {
         return {
             uppy: null,
             csvFile: null,
+            processing: false,
+            uploading: false,
+            previewInterval: 2000,
+            previewRetries: 0,
+            previewRetryIncrement: 1000,
+            previewMaxRetries: 10,
+            listSummary: null,
         };
     },
     mounted() {
@@ -20,7 +27,20 @@ export default {
     },
     watch: {
         csvFile() {
-            this.checkCsv();
+            // remove uploading flag
+            this.uploading = false;
+            // set processing flag = true
+            this.processing = true;
+            // delay list preview to give lambda time to process the csv
+            setTimeout(() => {
+                this.getListSummary();
+            }, this.previewInterval);
+        },
+        listSummary() {
+            // processing ended, summary available
+            this.processing = false;
+            // emit the summary
+            this.$emit("processed", this.csvFile, this.listSummary);
         },
     },
     methods: {
@@ -126,15 +146,13 @@ export default {
                 })
                 .on("complete", (result) => {
                     if (result.successful) {
-                        // set text to processing
-                        // document.querySelector(".uppy-status-text").innerText =
-                        //     "Processing ...";
                         const completedUploads = result.successful.map(
                             (item) => {
                                 return {
                                     id: item.id,
                                     localFilename: item.meta.name,
                                     key: item.s3Multipart.key,
+                                    previewUrl: item.response.body.preview_url,
                                 };
                             }
                         );
@@ -145,10 +163,8 @@ export default {
                     }
                 })
                 .on("file-added", (file) => {
-                    // this.uploading = true;
+                    this.uploading = true;
                     console.log("file added!");
-                    // document.querySelector(".uppy-status-text").innerText =
-                    //     "Uploading ...";
                 })
                 .on("upload-error", (file, err, response) => {
                     console.log(err);
@@ -157,23 +173,30 @@ export default {
                     console.error(err.stack);
                 });
         },
-        checkCsv() {
+        getListSummary() {
             //
             this.$http
-                .get("https://" + process.env.ApiDomain + "/csv/check", {
-                    params: {
-                        key: this.csvFile.key,
-                    },
-                    headers: {
-                        Authorization:
-                            this.$auth.getCurrentUser().signInUserSession
-                                .accessToken.jwtToken,
-                    },
-                })
+                .get(this.csvFile.previewUrl)
                 .then((res) => {
-                    console.log(res.data);
+                    this.listSummary = res.data;
+                    console.log(this.listSummary);
                 })
-                .catch((err) => console.log(err));
+                .catch((err) => {
+                    // retry again in 2 seconds if the file is not ready
+                    if (this.previewRetries < this.previewMaxRetries) {
+                        if (err.response && err.response.status == 403) {
+                            setTimeout(() => {
+                                // increment retries
+                                this.previewRetries++;
+                                // increment interval
+                                this.previewInterval +=
+                                    this.previewRetryIncrement;
+                                // get list summary
+                                this.getListSummary();
+                            }, this.previewInterval);
+                        }
+                    }
+                });
         },
     },
 };
@@ -182,5 +205,12 @@ export default {
     <div>
         <div id="uploader"></div>
         <div class="uppy-progress"></div>
+        <table v-if="listSummary">
+            <tbody>
+                <tr v-for="row in listSummary.preview">
+                    <td v-for="col in row" v-text="col"></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </template>

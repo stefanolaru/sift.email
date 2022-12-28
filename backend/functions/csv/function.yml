@@ -28,21 +28,14 @@ csvUpload:
                   type: request
                   name: CognitoAuth
 
-# check an uploaded CSV, return first row and total rows
-csvCheck:
-    handler: backend/functions/csv/check.handler
-    memorySize: 512
-    timeout: 28
+# parse the uploaded CSV
+csvParse:
+    handler: backend/functions/csv/parse.handler
+    memorySize: 2048
+    timeout: 300 # 5 mins
     role: CsvUtilsRole
     environment:
         S3_BUCKET: !Ref ListProcessingBucket
-    events:
-        - httpApi:
-              path: /csv/check
-              method: GET
-              authorizer:
-                  type: request
-                  name: CognitoAuth
 
 # private bulk validator
 csvSubmit:

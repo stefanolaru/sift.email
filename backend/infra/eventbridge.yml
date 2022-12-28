@@ -1,11 +1,11 @@
 Resources:
     # trigger Step Function on Object Created
-    S3ObjectCreated:
+    S3InputObjectCreated:
         Type: AWS::Events::Rule
         DependsOn: ProcessListsStepFunction
         Properties:
-            Name: ${self:custom.resourceName}_s3_object_created
-            Description: !Sub Events on s3://${ListProcessingBucket}
+            Name: ${self:custom.resourceName}_list_input_created
+            Description: !Sub List processing events on s3://${ListProcessingBucket}
             State: ENABLED
             EventPattern:
                 source:
@@ -23,6 +23,39 @@ Resources:
                 - Arn: !Ref ProcessListsStepFunction
                   Id: !GetAtt ProcessListsStepFunction.Name
                   RoleArn: !GetAtt EventBridgeStepFunctionsRole.Arn
+
+    # trigger Step Function on Object Created
+    S3TempObjectCreated:
+        Type: AWS::Events::Rule
+        DependsOn: ProcessListsStepFunction
+        Properties:
+            Name: ${self:custom.resourceName}_list_csv_uploaded
+            Description: !Sub Upload events on s3://${ListProcessingBucket}
+            State: ENABLED
+            EventPattern:
+                source:
+                    - aws.s3
+                detail-type:
+                    - Object Created
+                detail:
+                    bucket:
+                        name:
+                            - !Ref ListProcessingBucket
+                    object:
+                        key:
+                            - prefix: temp/
+            Targets:
+                - Arn: !GetAtt CsvParseLambdaFunction.Arn
+                  Id: !Ref CsvParseLambdaFunction
+
+    # allow eventbridge rule to invoke lambda
+    S3TempObjectCreatedLambdaInvokePermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: events.amazonaws.com
+            SourceArn: !GetAtt S3TempObjectCreated.Arn
+            FunctionName: !GetAtt CsvParseLambdaFunction.Arn
 
     # allow eventbridge to trigger the list processing state machine
     EventBridgeStepFunctionsRole:

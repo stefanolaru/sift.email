@@ -2,7 +2,7 @@
 csvUpload:
     handler: backend/functions/csv/upload.handler
     memorySize: 256
-    timeout: 28
+    timeout: 15
     role: CsvUtilsRole
     environment:
         S3_BUCKET: !Ref ListProcessingBucket

@@ -40,6 +40,7 @@ csvParse:
 # private bulk validator
 csvSubmit:
     handler: backend/functions/csv/submit.handler
+    memorySize: 256
     timeout: 28
     role: CsvUtilsRole
     environment:

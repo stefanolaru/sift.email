@@ -1,8 +1,6 @@
 const AWS = require("aws-sdk"),
     ddb = new AWS.DynamoDB(),
-    s3 = new AWS.S3(),
-    Papa = require("papaparse"),
-    KSUID = require("ksuid");
+    s3 = new AWS.S3();
 
 exports.handler = async (event) => {
     // prepare the response object
@@ -33,37 +31,36 @@ exports.handler = async (event) => {
         column_idx = parseInt(data.column_idx || 0);
 
     // stop if no data
-    if (!data || !data.key) {
+    if (!data || !data.csv_id) {
         // stop
         response.statusCode = 400;
         response.body = JSON.stringify({ error: "Bad request" });
         return response;
     }
 
-    // read csv -> JSON
-    const jsonData = await s3
+    // read preview file for the provided csv ID
+    const preview = await s3
         .getObject({
             Bucket: process.env.S3_BUCKET,
-            Key: data.key,
+            Key: "parsed/" + user_id + "/" + data.csv_id + "/preview.json",
         })
         .promise()
-        .then((res) => {
-            // extract first row
-            const parsed = Papa.parse(res.Body.toString("utf-8"));
-            return parsed.data || null;
-        })
+        .then((res) => JSON.parse(res.Body.toString("utf-8")))
         .catch((err) => {
             console.log(err);
             return null;
         });
 
-    if (!jsonData) {
+    if (!preview) {
         // stop
         response.statusCode = 400;
-        response.body = JSON.stringify({ error: "CSV could not be found" });
+        response.body = JSON.stringify({
+            error: "They key could not be found",
+        });
         return response;
     }
 
+    // get user usage
     const userProfile = await ddb
         .getItem({
             TableName: process.env.DDB_TABLE,
@@ -71,6 +68,11 @@ exports.handler = async (event) => {
                 PK: "user#" + user_id,
                 SK: "profile",
             }),
+            ExpressionAttributeNames: {
+                "#credits": "credits",
+                "#usage": "usage",
+            },
+            ProjectionExpression: "#credits, #usage",
         })
         .promise()
         .then((res) => {
@@ -93,13 +95,10 @@ exports.handler = async (event) => {
         return response;
     }
 
-    const credits = userProfile.credits || 0,
-        usage = jsonData.length || 0;
-
     // check quota, stop if not enough credits
-    if (credits <= usage) {
+    if (userProfile.credits - userProfile.usage <= preview.total_rows) {
         // stop
-        response.statusCode = 403;
+        response.statusCode = 400;
         response.body = JSON.stringify({
             error: "Not enough credits",
         });
@@ -107,43 +106,40 @@ exports.handler = async (event) => {
     }
 
     // generate timestamp & ksuid
-    const ts = new Date(),
-        ksuid = await KSUID.random(ts);
+    const ts = new Date();
 
-    // new key for json data
-    let jsonKey = "input/" + user_id + "/" + ksuid.string + "/data.json";
-
-    // register request
+    // copy data into input
     await s3
-        .upload({
+        .copyObject({
             Bucket: process.env.S3_BUCKET,
-            Body: JSON.stringify(jsonData),
-            Key: jsonKey,
-            ContentType: "application/json",
-            Metadata: {
-                user_id: user_id.toString(),
-                request_id: ksuid.string.toString(),
-                column_idx: column_idx.toString(),
-            },
+            CopySource:
+                "/" +
+                process.env.S3_BUCKET +
+                "/parsed/" +
+                user_id +
+                "/" +
+                data.csv_id +
+                "/data.json",
+            Key: "input/" + user_id + "/" + data.csv_id + "/data.json",
         })
         .promise()
         .then(() => {
             ddb.putItem({
                 TableName: process.env.DDB_TABLE,
                 Item: AWS.DynamoDB.Converter.marshall({
-                    PK: "user#" + user_id + "#request",
-                    SK: ksuid.string,
+                    PK: "user#" + user_id,
+                    SK: "request#" + data.csv_id,
                     created_at: Math.floor(ts / 1000),
-                    GSI: "request",
+                    GSI: "request#private",
                     entity_type: "request",
                     column_idx: column_idx,
-                    usage: jsonData.length, // json length
+                    usage: preview.total_rows,
                 }),
             }).promise();
         })
         .then(() => {
             response.body = {
-                request_id: ksuid.string,
+                request_id: data.csv_id,
             };
         })
         .catch((err) => {

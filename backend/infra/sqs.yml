@@ -3,6 +3,7 @@ Resources:
         Type: AWS::SQS::Queue
         Properties:
             QueueName: ${self:custom.resourceName}
+            VisibilityTimeout: 120
             RedrivePolicy:
                 deadLetterTargetArn: !GetAtt QueueDLQ.Arn
                 maxReceiveCount: 5

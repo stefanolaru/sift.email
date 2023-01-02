@@ -44,14 +44,15 @@ exports.handler = async (event) => {
                 ContentType: "application/json",
             })
             .promise()
-            .then((res) => {
+            .then(() => {
                 // write the data preview
                 return s3
                     .upload({
                         Bucket: process.env.S3_BUCKET,
                         Body: JSON.stringify({
-                            preview: parsed.data.slice(0, 14), // get the first 15
+                            preview: parsed.data.slice(0, 14), // get the first 15 items
                             total_rows: parsed.data.length,
+                            csv_id: metadata.request_id,
                         }),
                         Key:
                             "parsed/" +

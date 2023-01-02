@@ -5,11 +5,17 @@ export default {
         return {
             // summary: mockdata,
             columnIdx: 0,
+            loading: false,
         };
     },
     mounted() {
         // loop all
         this.suggestColumnIdx();
+    },
+    computed: {
+        buttonText() {
+            return this.loading ? "Please wait ..." : "Submit";
+        },
     },
     methods: {
         suggestColumnIdx() {
@@ -28,11 +34,32 @@ export default {
             // set email column index
             this.columnIdx = [...new Set(colIdxs)].shift();
         },
+        submitList() {
+            return this.$http
+                .post(
+                    "https://" + process.env.ApiDomain + "/csv/submit",
+                    {
+                        csv_id: this.summary.csv_id,
+                        column_idx: this.columnIdx,
+                    },
+                    {
+                        headers: {
+                            Authorization:
+                                this.$auth.getCurrentUser().signInUserSession
+                                    .accessToken.jwtToken,
+                        },
+                    }
+                )
+                .then((res) => {
+                    console.log(res.data);
+                })
+                .catch((err) => console.log(err));
+        },
     },
 };
 </script>
 <template>
-    <div class="w-full mt-6">
+    <form class="w-full mt-6" @submit.prevent="submitList">
         <div class="py-3">
             Preview CSV (first 15 rows) - please make sure the email column is
             highlighted
@@ -71,5 +98,11 @@ export default {
                 </tr>
             </table>
         </div>
-    </div>
+        <button
+            type="submit"
+            :disabled="loading"
+            class="px-12 py-3 text-white bg-indigo-500 rounded-md hover:bg-indigo-600"
+            v-text="buttonText"
+        ></button>
+    </form>
 </template>

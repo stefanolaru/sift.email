@@ -1,33 +1,32 @@
 Resources:
     # trigger Step Function on Object Created
-    S3InputObjectCreated:
-        Type: AWS::Events::Rule
-        DependsOn: ProcessListsStepFunction
-        Properties:
-            Name: ${self:custom.resourceName}_list_input_created
-            Description: !Sub List processing events on s3://${ListProcessingBucket}
-            State: ENABLED
-            EventPattern:
-                source:
-                    - aws.s3
-                detail-type:
-                    - Object Created
-                detail:
-                    bucket:
-                        name:
-                            - !Ref ListProcessingBucket
-                    object:
-                        key:
-                            - prefix: input/
-            Targets:
-                - Arn: !Ref ProcessListsStepFunction
-                  Id: !GetAtt ProcessListsStepFunction.Name
-                  RoleArn: !GetAtt EventBridgeStepFunctionsRole.Arn
+    # S3InputObjectCreated:
+    #     Type: AWS::Events::Rule
+    #     DependsOn: ProcessListsStepFunction
+    #     Properties:
+    #         Name: ${self:custom.resourceName}_list_input_created
+    #         Description: !Sub List processing events on s3://${ListProcessingBucket}
+    #         State: ENABLED
+    #         EventPattern:
+    #             source:
+    #                 - aws.s3
+    #             detail-type:
+    #                 - Object Created
+    #             detail:
+    #                 bucket:
+    #                     name:
+    #                         - !Ref ListProcessingBucket
+    #                 object:
+    #                     key:
+    #                         - prefix: input/
+    #         Targets:
+    #             - Arn: !Ref ProcessListsStepFunction
+    #               Id: !GetAtt ProcessListsStepFunction.Name
+    #               RoleArn: !GetAtt EventBridgeStepFunctionsRole.Arn
 
     # trigger Step Function on Object Created
     S3TempObjectCreated:
         Type: AWS::Events::Rule
-        DependsOn: ProcessListsStepFunction
         Properties:
             Name: ${self:custom.resourceName}_list_csv_uploaded
             Description: !Sub Upload events on s3://${ListProcessingBucket}
@@ -58,27 +57,27 @@ Resources:
             FunctionName: !GetAtt CsvParseLambdaFunction.Arn
 
     # allow eventbridge to trigger the list processing state machine
-    EventBridgeStepFunctionsRole:
-        Type: AWS::IAM::Role
-        DependsOn: ProcessListsStepFunction
-        Properties:
-            Path: /
-            RoleName: ${self:custom.resourceName}_eventbridge
-            AssumeRolePolicyDocument:
-                Version: "2012-10-17"
-                Statement:
-                    - Effect: Allow
-                      Principal:
-                          Service:
-                              - events.amazonaws.com
-                      Action: sts:AssumeRole
-            Policies:
-                - PolicyName: ${self:custom.resourceName}_eventbridge
-                  PolicyDocument:
-                      Version: "2012-10-17"
-                      Statement:
-                          - Effect: Allow
-                            Action:
-                                - states:StartExecution
-                            Resource:
-                                - !Ref ProcessListsStepFunction
+    # EventBridgeStepFunctionsRole:
+    #     Type: AWS::IAM::Role
+    #     DependsOn: ProcessListsStepFunction
+    #     Properties:
+    #         Path: /
+    #         RoleName: ${self:custom.resourceName}_eventbridge
+    #         AssumeRolePolicyDocument:
+    #             Version: "2012-10-17"
+    #             Statement:
+    #                 - Effect: Allow
+    #                   Principal:
+    #                       Service:
+    #                           - events.amazonaws.com
+    #                   Action: sts:AssumeRole
+    #         Policies:
+    #             - PolicyName: ${self:custom.resourceName}_eventbridge
+    #               PolicyDocument:
+    #                   Version: "2012-10-17"
+    #                   Statement:
+    #                       - Effect: Allow
+    #                         Action:
+    #                             - states:StartExecution
+    #                         Resource:
+    #                             - !Ref ProcessListsStepFunction

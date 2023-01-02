@@ -55,7 +55,7 @@ provider:
 functions:
     - ${file(./backend/functions/validator/function.yml)}
     - ${file(./backend/functions/csv/function.yml)}
-    - ${file(./backend/functions/list_processor/function.yml)}
+    # - ${file(./backend/functions/list_processor/function.yml)}
     - ${file(./backend/functions/stream_consumer/function.yml)}
     - ${file(./backend/functions/event_listener/function.yml)}
     - ${file(./backend/functions/auth/function.yml)}
@@ -71,22 +71,24 @@ resources:
     - ${file(./backend/infra/dynamodb.yml)}
     - ${file(./backend/infra/eventbridge.yml)}
     - ${file(./backend/infra/sns.yml)}
+    - ${file(./backend/infra/sqs.yml)}
     - ${file(./backend/infra/ses.yml)}
     - ${file(./backend/infra/cognito.yml)}
     - ${file(./backend/infra/codebuild.yml)}
+    - ${file(./backend/infra/lambda.yml)}
 
     # Roles
     - ${file(./backend/functions/validator/role.yml)}
     - ${file(./backend/functions/csv/role.yml)}
-    - ${file(./backend/functions/list_processor/role.yml)}
+    # - ${file(./backend/functions/list_processor/role.yml)}
     - ${file(./backend/functions/stream_consumer/role.yml)}
     - ${file(./backend/functions/event_listener/role.yml)}
     - ${file(./backend/functions/auth/role.yml)}
     - ${file(./backend/functions/users/role.yml)}
 
     # step function & role
-    - ${file(./backend/step_functions/process_list/function.yml)}
-    - ${file(./backend/step_functions/process_list/role.yml)}
+    # - ${file(./backend/step_functions/process_list/function.yml)}
+    # - ${file(./backend/step_functions/process_list/role.yml)}
 
     # Outputs for frontend
     - Outputs:

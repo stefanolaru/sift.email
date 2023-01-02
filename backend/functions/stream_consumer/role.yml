@@ -21,6 +21,7 @@ Resources:
                           # DynamoDB allow item update and stream related operations
                           - Effect: Allow
                             Action:
+                                - dynamodb:Query
                                 - dynamodb:UpdateItem
                                 - dynamodb:DescribeStream
                                 - dynamodb:GetRecords
@@ -30,6 +31,22 @@ Resources:
                             Resource:
                                 - !GetAtt Table.Arn
                                 - !GetAtt Table.StreamArn
+                                - !Join
+                                  - ""
+                                  - - !GetAtt Table.Arn
+                                    - "/index/GSI"
+                          # allow SQS message send
+                          - Effect: Allow
+                            Action:
+                                - sqs:SendMessage
+                            Resource:
+                                - !GetAtt Queue.Arn
+                          # allow SNS message send on mx/smtp validation end
+                          - Effect: Allow
+                            Action:
+                                - sns:Publish
+                            Resource:
+                                - !Ref ListValidationEndTopic
                           # CW
                           - Effect: Allow
                             Action:

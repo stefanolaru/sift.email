@@ -143,6 +143,7 @@ const checkFormat = (email) => {
     return {
         email: email,
         domain: domain,
+        local_part: local_part,
     };
 };
 

@@ -18,7 +18,7 @@ exports.handler = async (event) => {
             .updateItem({
                 TableName: process.env.DDB_TABLE,
                 Key: AWS.DynamoDB.Converter.marshall({
-                    PK: record.PK.replace("#request", ""),
+                    PK: record.PK,
                     SK: "profile",
                 }),
                 ExpressionAttributeNames: {

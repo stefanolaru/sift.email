@@ -42,6 +42,10 @@ exports.handler = async (event) => {
                     metadata.request_id +
                     "/data.json",
                 ContentType: "application/json",
+                Metadata: {
+                    user_id: metadata.user_id,
+                    request_id: metadata.request_id,
+                },
             })
             .promise()
             .then(() => {

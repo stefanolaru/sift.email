@@ -1,0 +1,10 @@
+Resources:
+    # SG to be used for Lambda inside VPC
+    LambdaSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: ${self:custom.resourceName} VPC
+            VpcId: !ImportValue sift-network-VPCID
+            Tags:
+                - Key: Name
+                  Value: ${self:custom.resourceName} Lambda SG

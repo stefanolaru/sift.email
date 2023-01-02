@@ -57,6 +57,7 @@ functions:
     - ${file(./backend/functions/csv/function.yml)}
     # - ${file(./backend/functions/list_processor/function.yml)}
     - ${file(./backend/functions/stream_consumer/function.yml)}
+    - ${file(./backend/functions/queue_consumer/function.yml)}
     - ${file(./backend/functions/event_listener/function.yml)}
     - ${file(./backend/functions/auth/function.yml)}
     - ${file(./backend/functions/users/function.yml)}
@@ -82,6 +83,7 @@ resources:
     - ${file(./backend/functions/csv/role.yml)}
     # - ${file(./backend/functions/list_processor/role.yml)}
     - ${file(./backend/functions/stream_consumer/role.yml)}
+    - ${file(./backend/functions/queue_consumer/role.yml)}
     - ${file(./backend/functions/event_listener/role.yml)}
     - ${file(./backend/functions/auth/role.yml)}
     - ${file(./backend/functions/users/role.yml)}

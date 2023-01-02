@@ -95,7 +95,7 @@ exports.handler = async (event) => {
                 PK: "user#" + user_id + "#request",
                 SK: ksuid.string,
                 created_at: Math.floor(ts / 1000),
-                GSI: "request",
+                GSI: "request#private",
                 entity_type: "request",
                 usage: 1, // number of submitted recipients
             }),

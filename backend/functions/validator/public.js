@@ -76,7 +76,7 @@ exports.handler = async (event) => {
                 PK: "public#" + ipAddress,
                 SK: ksuid.string,
                 created_at: Math.floor(ts / 1000),
-                GSI: "request",
+                GSI: "request#public",
                 entity_type: "request",
                 expires_at:
                     Math.floor(ts / 1000) +

@@ -108,34 +108,36 @@ exports.handler = async (event) => {
     // generate timestamp & ksuid
     const ts = new Date();
 
-    // copy data into input
-    await s3
-        .copyObject({
-            Bucket: process.env.S3_BUCKET,
-            CopySource:
-                "/" +
-                process.env.S3_BUCKET +
-                "/parsed/" +
-                user_id +
-                "/" +
-                data.csv_id +
-                "/data.json",
-            Key: "input/" + user_id + "/" + data.csv_id + "/data.json",
+    // generate db entry & copy object on input/ path
+    await ddb
+        .putItem({
+            TableName: process.env.DDB_TABLE,
+            Item: AWS.DynamoDB.Converter.marshall({
+                PK: "user#" + user_id,
+                SK: "request#" + data.csv_id,
+                created_at: Math.floor(ts / 1000),
+                GSI: "request#private",
+                entity_type: "request",
+                column_idx: column_idx,
+                usage: preview.total_rows,
+            }),
         })
         .promise()
         .then(() => {
-            ddb.putItem({
-                TableName: process.env.DDB_TABLE,
-                Item: AWS.DynamoDB.Converter.marshall({
-                    PK: "user#" + user_id,
-                    SK: "request#" + data.csv_id,
-                    created_at: Math.floor(ts / 1000),
-                    GSI: "request#private",
-                    entity_type: "request",
-                    column_idx: column_idx,
-                    usage: preview.total_rows,
-                }),
-            }).promise();
+            return s3
+                .copyObject({
+                    Bucket: process.env.S3_BUCKET,
+                    CopySource:
+                        "/" +
+                        process.env.S3_BUCKET +
+                        "/parsed/" +
+                        user_id +
+                        "/" +
+                        data.csv_id +
+                        "/data.json",
+                    Key: "input/" + user_id + "/" + data.csv_id + "/data.json",
+                })
+                .promise();
         })
         .then(() => {
             response.body = {

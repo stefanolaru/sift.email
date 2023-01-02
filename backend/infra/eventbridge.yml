@@ -1,28 +1,35 @@
 Resources:
-    # trigger Step Function on Object Created
-    # S3InputObjectCreated:
-    #     Type: AWS::Events::Rule
-    #     DependsOn: ProcessListsStepFunction
-    #     Properties:
-    #         Name: ${self:custom.resourceName}_list_input_created
-    #         Description: !Sub List processing events on s3://${ListProcessingBucket}
-    #         State: ENABLED
-    #         EventPattern:
-    #             source:
-    #                 - aws.s3
-    #             detail-type:
-    #                 - Object Created
-    #             detail:
-    #                 bucket:
-    #                     name:
-    #                         - !Ref ListProcessingBucket
-    #                 object:
-    #                     key:
-    #                         - prefix: input/
-    #         Targets:
-    #             - Arn: !Ref ProcessListsStepFunction
-    #               Id: !GetAtt ProcessListsStepFunction.Name
-    #               RoleArn: !GetAtt EventBridgeStepFunctionsRole.Arn
+    # trigger prevalidate
+    S3InputObjectCreated:
+        Type: AWS::Events::Rule
+        Properties:
+            Name: ${self:custom.resourceName}_list_input_created
+            Description: !Sub List processing events on s3://${ListProcessingBucket}
+            State: ENABLED
+            EventPattern:
+                source:
+                    - aws.s3
+                detail-type:
+                    - Object Created
+                detail:
+                    bucket:
+                        name:
+                            - !Ref ListProcessingBucket
+                    object:
+                        key:
+                            - prefix: input/
+            Targets:
+                - Arn: !GetAtt ListPrevalidateLambdaFunction.Arn
+                  Id: !Ref ListPrevalidateLambdaFunction
+
+    # allow eventbridge rule to invoke lambda
+    S3InputObjectCreatedLambdaInvokePermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: events.amazonaws.com
+            SourceArn: !GetAtt S3InputObjectCreated.Arn
+            FunctionName: !GetAtt ListPrevalidateLambdaFunction.Arn
 
     # trigger Step Function on Object Created
     S3TempObjectCreated:

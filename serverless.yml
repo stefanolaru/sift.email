@@ -55,7 +55,7 @@ provider:
 functions:
     - ${file(./backend/functions/validator/function.yml)}
     - ${file(./backend/functions/csv/function.yml)}
-    # - ${file(./backend/functions/list_processor/function.yml)}
+    - ${file(./backend/functions/list_processor/function.yml)}
     - ${file(./backend/functions/stream_consumer/function.yml)}
     - ${file(./backend/functions/queue_consumer/function.yml)}
     - ${file(./backend/functions/event_listener/function.yml)}
@@ -81,7 +81,7 @@ resources:
     # Roles
     - ${file(./backend/functions/validator/role.yml)}
     - ${file(./backend/functions/csv/role.yml)}
-    # - ${file(./backend/functions/list_processor/role.yml)}
+    - ${file(./backend/functions/list_processor/role.yml)}
     - ${file(./backend/functions/stream_consumer/role.yml)}
     - ${file(./backend/functions/queue_consumer/role.yml)}
     - ${file(./backend/functions/event_listener/role.yml)}

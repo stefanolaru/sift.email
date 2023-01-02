@@ -17,12 +17,21 @@ Resources:
                   PolicyDocument:
                       Version: "2012-10-17"
                       Statement:
-                          # allow S3 upload
+                          # batch write into DynamoDB
+                          - Effect: Allow
+                            Action:
+                                - dynamodb:GetItem
+                                - dynamodb:BatchWriteItem
+                            Resource:
+                                - !GetAtt Table.Arn
+                                - !Join
+                                  - ""
+                                  - - !GetAtt Table.Arn
+                                    - "/index/*"
+                          # allow S3 read data
                           - Effect: Allow
                             Action:
                                 - s3:GetObject
-                                - s3:PutObject
-                                - s3:ListBucket
                             Resource:
                                 - !GetAtt ListProcessingBucket.Arn
                                 - !Join

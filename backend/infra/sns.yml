@@ -1,21 +1,16 @@
 Resources:
-    # list processing start
-    ListProcessingStartTopic:
+    # list smtp validation done
+    ListValidationEndTopic:
         Type: AWS::SNS::Topic
         Properties:
-            TopicName: ${self:custom.resourceName}_processing_start
+            TopicName: ${self:custom.resourceName}_validation_end
     # list processing done
     ListProcessingEndTopic:
         Type: AWS::SNS::Topic
         Properties:
             TopicName: ${self:custom.resourceName}_processing_end
-    # list processing done
-    SESFeedbackTopic:
-        Type: AWS::SNS::Topic
-        Properties:
-            TopicName: ${self:custom.resourceName}_ses_feedback
     # allow topic to invoke lambda
-    LambdaInvokePermission:
+    ListProcessingEndTopicLambdaInvokePermission:
         Type: AWS::Lambda::Permission
         Properties:
             Action: lambda:InvokeFunction
@@ -29,3 +24,15 @@ Resources:
             Endpoint: !GetAtt ListProcessingFinishedLambdaFunction.Arn
             Protocol: lambda
             TopicArn: !Ref ListProcessingEndTopic
+    # list processing done
+    SESFeedbackTopic:
+        Type: AWS::SNS::Topic
+        Properties:
+            TopicName: ${self:custom.resourceName}_ses_feedback
+    # subscribe lambda to topic
+    SESFeedbackTopicSubscription:
+        Type: AWS::SNS::Subscription
+        Properties:
+            Endpoint: !GetAtt ListProcessingFinishedLambdaFunction.Arn
+            Protocol: lambda
+            TopicArn: !Ref SESFeedbackTopic

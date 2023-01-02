@@ -21,6 +21,7 @@ Resources:
                           - Effect: Allow
                             Action:
                                 - dynamodb:GetItem
+                                - dynamodb:Query
                                 - dynamodb:BatchWriteItem
                             Resource:
                                 - !GetAtt Table.Arn
@@ -38,6 +39,23 @@ Resources:
                                   - ""
                                   - - !GetAtt ListProcessingBucket.Arn
                                     - "/*"
+
+                          # allow to create eventbridge rules
+                          - Effect: Allow
+                            Action:
+                                - events:PutRule
+                                - events:DeleteRule
+                                - events:PutTargets
+                                - events:RemoveTargets
+                            Resource: "*"
+
+                          # allow SNS message send on mx/smtp validation end
+                          - Effect: Allow
+                            Action:
+                                - sns:Publish
+                            Resource:
+                                - !Ref ListValidationEndTopic
+
                           # allow cloudwatch
                           - Effect: Allow
                             Action:

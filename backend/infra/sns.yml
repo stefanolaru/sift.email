@@ -4,6 +4,21 @@ Resources:
         Type: AWS::SNS::Topic
         Properties:
             TopicName: ${self:custom.resourceName}_validation_end
+    # allow topic to invoke lambda
+    ListValidationEndTopicLambdaInvokePermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: sns.amazonaws.com
+            SourceArn: !Ref ListValidationEndTopic
+            FunctionName: !GetAtt ListBundleResultsLambdaFunction.Arn
+    # subscribe lambda to topic
+    ListValidationEndTopicSubscription:
+        Type: AWS::SNS::Subscription
+        Properties:
+            Endpoint: !GetAtt ListBundleResultsLambdaFunction.Arn
+            Protocol: lambda
+            TopicArn: !Ref ListValidationEndTopic
     # list processing done
     ListProcessingEndTopic:
         Type: AWS::SNS::Topic

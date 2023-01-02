@@ -40,24 +40,3 @@ streamConsumerDomain:
                         NewImage:
                             entity_type:
                                 S: [domain_check]
-# progress stream consumer
-streamConsumerProgress:
-    handler: backend/functions/stream_consumer/progress.handler
-    memorySize: 256
-    timeout: 10
-    role: StreamConsumerRole
-    environment:
-        DDB_TABLE: !Ref Table
-        SNS_TOPIC: !Ref ListValidationEndTopic
-    events:
-        - stream:
-              type: dynamodb
-              arn: !GetAtt Table.StreamArn
-              maximumRetryAttempts: 1
-              batchSize: 10
-              filterPatterns:
-                  - eventName: [MODIFY]
-                    dynamodb:
-                        NewImage:
-                            entity_type:
-                                S: [domain_check]

@@ -3,6 +3,8 @@ const AWS = require("aws-sdk"),
     Validator = require("../../libs/validator");
 
 exports.handler = async (event) => {
+    console.log(event);
+    return;
     let promises = [],
         invalidDomains = [];
 

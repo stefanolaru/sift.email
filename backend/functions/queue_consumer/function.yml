@@ -2,6 +2,7 @@ queueConsumerValidate:
     handler: backend/functions/queue_consumer/validate.handler
     memorySize: 256
     timeout: 120 # 2 mins max
+    reservedConcurrency: 10
     role: QueueConsumerRole
     environment:
         DDB_TABLE: !Ref Table

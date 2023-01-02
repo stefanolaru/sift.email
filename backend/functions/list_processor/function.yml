@@ -7,6 +7,7 @@ listPrevalidate:
     environment:
         DDB_TABLE: !Ref Table
         S3_BUCKET: !Ref ListProcessingBucket
+        EB_RULE_TARGET_ARN: !GetAtt ListProgressPollerLambdaFunction.Arn
 # listDomainsPreflight:
 #     handler: backend/functions/list_processor/preflight.handler
 #     memorySize: 128
@@ -24,10 +25,21 @@ listPrevalidate:
 #     environment:
 #         S3_BUCKET: !Ref ListProcessingBucket
 
-# listBundleResults:
-#     handler: backend/functions/list_processor/bundle.handler
-#     memorySize: 1024
-#     timeout: 300 # 2 minutes
-#     role: ListProcessingRole
-#     environment:
-#         S3_BUCKET: !Ref ListProcessingBucket
+listBundleResults:
+    handler: backend/functions/list_processor/bundle.handler
+    memorySize: 1024
+    timeout: 300 # 2 minutes
+    role: ListProcessingRole
+    environment:
+        DDB_TABLE: !Ref Table
+        S3_BUCKET: !Ref ListProcessingBucket
+
+# progress checker
+listProgressPoller:
+    handler: backend/functions/list_processor/progress.handler
+    memorySize: 256
+    timeout: 10
+    role: ListProcessingRole
+    environment:
+        DDB_TABLE: !Ref Table
+        SNS_TOPIC: !Ref ListValidationEndTopic

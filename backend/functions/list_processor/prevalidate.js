@@ -1,6 +1,7 @@
 const AWS = require("aws-sdk"),
     ddb = new AWS.DynamoDB(),
     s3 = new AWS.S3(),
+    eb = new AWS.EventBridge(),
     Validator = require("../../libs/validator"),
     Utils = require("../../libs/utils");
 
@@ -152,6 +153,39 @@ exports.handler = async (event) => {
                 console.log(err);
             });
     }
+
+    // create EventBridge rule to poll the progress
+    const ruleCreated = await eb
+        .putRule({
+            Name: "sift_" + metadata.request_id,
+            State: "ENABLED",
+            ScheduleExpression: "rate(1 minute)",
+        })
+        .promise()
+        .then((res) => {
+            return eb
+                .putTargets({
+                    Rule: "sift_" + metadata.request_id,
+                    Targets: [
+                        {
+                            Arn: process.env.EB_RULE_TARGET_ARN,
+                            Id: "sift_" + metadata.request_id,
+                            Input: JSON.stringify({
+                                request_id: metadata.request_id,
+                            }),
+                        },
+                    ],
+                })
+                .promise();
+        })
+        .then((res) => (!res.FailedEntryCount ? true : false))
+        .catch((err) => {
+            console.log(err);
+            return false;
+        });
+
+    // stop if rule wasn't created
+    if (!ruleCreated) return;
 
     // prepare pending items for batch db insert
     const ts = new Date(),

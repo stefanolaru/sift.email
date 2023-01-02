@@ -88,3 +88,12 @@ Resources:
     #                             - states:StartExecution
     #                         Resource:
     #                             - !Ref ProcessListsStepFunction
+    # codebuild backend role - admin access - to be restricted at a later time
+
+    # allow lambda to be invoked by event bridge rules
+    EventBridgeLambdaInvokePermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            Principal: events.amazonaws.com
+            FunctionName: !GetAtt ListProgressPollerLambdaFunction.Arn

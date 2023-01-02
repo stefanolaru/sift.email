@@ -51,6 +51,7 @@ provider:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1 # keep alive 3rd party TCP connections
 
     logRetentionInDays: 7 # no of days to retain the Lambda logs in CloudWatch
+    architecture: arm64
 
 functions:
     - ${file(./backend/functions/validator/function.yml)}

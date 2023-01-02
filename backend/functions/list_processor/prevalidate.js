@@ -166,6 +166,7 @@ exports.handler = async (event) => {
                             PK: "dc#" + metadata.request_id,
                             SK: domain + "#" + k,
                             GSI: metadata.request_id + "#pending",
+                            domain: domain,
                             local_parts: v,
                             created_at: Math.floor(ts / 1000),
                             entity_type: "domain_check",

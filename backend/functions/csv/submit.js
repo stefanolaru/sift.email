@@ -121,6 +121,7 @@ exports.handler = async (event) => {
                 column_idx: column_idx,
                 usage: preview.total_rows,
             }),
+            ConditionExpression: "attribute_not_exists(SK)",
         })
         .promise()
         .then(() => {

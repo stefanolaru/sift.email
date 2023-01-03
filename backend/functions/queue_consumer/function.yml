@@ -6,6 +6,7 @@ queueConsumerValidate:
     role: QueueConsumerRole
     environment:
         DDB_TABLE: !Ref Table
+        EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}
     events:
         - sqs:
               arn: !GetAtt Queue.Arn

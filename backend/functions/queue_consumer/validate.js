@@ -9,20 +9,18 @@ exports.handler = async (event) => {
         let record = event.Records.shift();
         // parse body JSON
         const item = JSON.parse(record.body);
-        // get MX records, max 5s timeout per domain
-        const mx = await Validator.mxQuery(item.domain, 5000)
-            .then((res) => res)
+
+        // validate the entire domain
+        const result = await Validator.validateDomain(
+            item.domain,
+            item.local_parts,
+            5000
+        )
+            .then()
             .catch((err) => {
+                console.log(err);
                 return null;
             });
-
-        // error
-        let error = null;
-
-        if (!mx) {
-            //
-            error = "NO_MX";
-        }
 
         // update dc entry with the domain validation result
         await ddb
@@ -34,13 +32,13 @@ exports.handler = async (event) => {
                 }),
                 ExpressionAttributeNames: {
                     "#GSI": "GSI",
-                    "#error": "error",
+                    "#result": "result",
                 },
                 ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
                     ":GSI": item.GSI.replace("#pending", "#done"),
-                    ":error": error,
+                    ":result": result,
                 }),
-                UpdateExpression: "SET #GSI=:GSI,#error=:error",
+                UpdateExpression: "SET #GSI=:GSI,#result=:result",
             })
             .promise()
             .then()

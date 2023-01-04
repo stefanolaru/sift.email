@@ -12,6 +12,8 @@ Resources:
                           Service:
                               - lambda.amazonaws.com
                       Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
             Policies:
                 - PolicyName: ${self:custom.resourceName}_queue_consumer
                   PolicyDocument:

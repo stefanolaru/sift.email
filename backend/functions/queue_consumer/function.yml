@@ -1,9 +1,16 @@
 queueConsumerValidate:
     handler: backend/functions/queue_consumer/validate.handler
     memorySize: 256
-    timeout: 120 # 2 mins max
+    timeout: 300 # 5 mins max
     reservedConcurrency: 10
     role: QueueConsumerRole
+    vpc:
+        securityGroupIds:
+            - !Ref LambdaSecurityGroup
+        subnetIds:
+            # - !Ref PrivateSubnet
+            - !ImportValue sift-network-PrivateSubnet1
+            - !ImportValue sift-network-PrivateSubnet2
     environment:
         DDB_TABLE: !Ref Table
         EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}

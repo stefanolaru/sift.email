@@ -78,7 +78,7 @@ const validateEmail = async (input, timeout = 5000) =>
 
         // role check
         if (isRoleMail(result.domain)) {
-            response["reason"] = "Role-based email";
+            response["reason"] = "Role-based address";
             resolve(response);
         }
 
@@ -355,10 +355,7 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
         } catch (err) {}
         // prepare response
         Object.assign(response.domain, {
-            accuracy:
-                greylisted || isFreeMail.includes(response.domain)
-                    ? MEDIUM
-                    : LOW,
+            accuracy: greylisted || isFreeMail(response.domain) ? MEDIUM : LOW,
             reason: "Catch-all domain",
         });
         // resolve
@@ -398,6 +395,7 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
 
 //
 const isSmtpGreylisted = (err) => {
+    // console.log(err);
     /*
     450 - Requested action not taken – The user’s mailbox is unavailable
     451 - Requested action aborted – Local error in processing
@@ -410,7 +408,7 @@ const isSmtpGreylisted = (err) => {
 
     /*
     if the error is a 5.7* code or contains blacklist|banned|denied|blocked|spam|abuse|deferred
-    we can't communicate with the SMTP due because they're blocking our IP
+    we can't communicate with the SMTP because they're probably blocking our IP
     */
     // separate codeblocks for the sake of readability
 

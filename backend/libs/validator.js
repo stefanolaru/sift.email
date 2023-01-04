@@ -43,62 +43,80 @@ const dns = require("dns"),
     ];
 
 /**
- * Validates a single email recipient
- * @param {*} email
- * @returns object
+ * Result: VALID / INVALID
+ * Accuracy: LOW / MEDIUM / HIGH
  */
-const validateEmail = async (input) => {
-    // verify format
-    const result = checkFormat(input);
+const VALID = "VALID",
+    INVALID = "INVALID",
+    LOW = "LOW",
+    MEDIUM = "MEDIUM",
+    HIGH = "HIGH";
 
-    // return early on error
-    if (result.error)
-        return {
-            email: input,
-            error: result.error,
-        };
+/**
+ * Validates a single email recipient
+ * @param {*} input
+ * @param {*} timeout
+ * @returns resolve object
+ */
+const validateEmail = async (input, timeout = 5000) =>
+    new Promise((resolve) => {
+        // verify format
+        let result = validateFormat(input),
+            response = { result: INVALID, accuracy: HIGH }; // invalid by default
 
-    // passed format validation, append disposable & free checks
-    Object.assign(result, {
-        is_disposable: isDisposable(result.domain),
-        is_free_email: isFreeMail(result.domain),
-        is_role: isRoleMail(result.local_part),
-    });
+        // format error
+        if (result.error) {
+            response["reason"] = "Invalid format";
+            resolve(response);
+        }
 
-    // check MX & SMTP
-    if (!result.is_disposable && !result.is_role) {
-        await validateDomain(result.domain, [result.local_part], 3000)
+        // disposable check
+        if (isDisposable(result.domain)) {
+            response["reason"] = "Disposable domain";
+            resolve(response);
+        }
+
+        // role check
+        if (isRoleMail(result.domain)) {
+            response["reason"] = "Role-based email";
+            resolve(response);
+        }
+
+        // check domain MX & SMTP
+        validateDomain(result.domain, [result.local_part], timeout)
             .then((res) => {
-                if (res.domain) {
-                    Object.assign(result, {
-                        error: res.domain,
+                // resolve final response
+                if (res.recipients.invalid.length) {
+                    Object.assign(response, {
+                        accuracy: res.recipients.invalid[0].accuracy,
+                        reason: "Recipient does not exist",
                     });
-                } else if (res.recipients) {
-                    Object.assign(result, {
-                        error: "Invalid email",
-                    });
+                } else {
+                    response = res.domain; // default to domain result
                 }
+                // resolve
+                resolve(response);
             })
             .catch((err) => {
                 console.log(err);
-            });
-    }
 
-    return result;
-};
+                // resolve whatever
+                resolve(response);
+            });
+    });
 /**
  *
  * @param {*} email
  * returns email & email parts
  */
-const checkFormat = (email) => {
+const validateFormat = (email) => {
     //
     const email_regex =
         /^[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
 
     // check for email
     if (!email) {
-        return { error: "Email not provided" };
+        return { error: "Email missing" };
     }
 
     // trim from spaces
@@ -212,7 +230,12 @@ const isRoleMail = (domain) => roles.includes(domain);
 const validateDomain = async (domain, recipients, timeout = 5000) => {
     // vars
     let client = null,
-        connected = false;
+        connected = false,
+        greylisted = false,
+        response = {
+            domain: { result: VALID, accuracy: HIGH }, // valid by default
+            recipients: { invalid: [] },
+        };
 
     // check domain MX entries
     let mxs = await mxQuery(domain, timeout)
@@ -223,9 +246,13 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
 
     // return error if no MX
     if (!mxs || !mxs.length) {
-        return Promise.resolve({
-            domain: "MX",
+        // prepare response
+        Object.assign(response.domain, {
+            result: INVALID,
+            reason: "No MX records",
         });
+        //
+        return Promise.resolve(response);
     }
 
     // try just the first 2 MX hosts
@@ -242,74 +269,103 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
             .connect({ timeout: timeout })
             .then(() => true)
             .catch((err) => {
+                greylisted = isSmtpGreylisted(err);
                 return false;
             });
     }
 
     // stop if still not connected
     if (!connected) {
-        return Promise.resolve({
-            domain: "CONNECT",
+        // prepare response
+        Object.assign(response.domain, {
+            accuracy: greylisted ? MEDIUM : LOW,
+            reason: "Could not connect to SMTP",
         });
+        //
+        return Promise.resolve(response);
     }
 
     // Send a HELO/EHLO command
+    greylisted = false;
     const HELO = await client
         .greet({ timeout: timeout })
         .then(() => true)
-        .catch((err) => false);
+        .catch((err) => {
+            greylisted = isSmtpGreylisted(err);
+            return false;
+        });
 
     // stop if HELO doesn't go through
     if (!HELO) {
         try {
             await client.quit({ timeout: timeout });
         } catch (err) {}
-        return Promise.resolve({
-            domain: "EHLO",
+        // prepare response
+        Object.assign(response.domain, {
+            accuracy: greylisted ? MEDIUM : LOW,
+            reason: "Could not greet SMTP",
         });
+        return Promise.resolve(response);
     }
 
     // Send a MAIL FROM command
+    greylisted = false;
     const MAIL = await client
         .mail({
             from: process.env.EMAIL_FROM_ADDRESS,
             timeout: timeout,
         })
         .then(() => true)
-        .catch((err) => false);
+        .catch((err) => {
+            greylisted = isSmtpGreylisted(err);
+            return false;
+        });
 
     // stop if MAIL doesn't go through
     if (!MAIL) {
         try {
             await client.quit({ timeout: timeout });
         } catch (err) {}
-        return Promise.resolve({
-            domain: "MAIL",
+        // prepare response
+        Object.assign(response.domain, {
+            accuracy: greylisted ? MEDIUM : LOW,
+            reason: "Could not communicate with SMTP",
         });
+        //
+        return Promise.resolve(response);
     }
 
     // Send a RCPT TO command to a random recipient
+    greylisted = false;
     const CATCH_ALL = await client
         .rcpt({
             to: "catch-all-" + Date.now() + "@" + domain,
             timeout: timeout,
         })
         .then(() => true)
-        .catch(() => false);
+        .catch((err) => {
+            greylisted = isSmtpGreylisted(err);
+            return false;
+        });
 
     // stop if it's a catch all domain, it will accept any recipient
     if (CATCH_ALL) {
         try {
             await client.quit({ timeout: timeout });
         } catch (err) {}
-        // resolve
-        return Promise.resolve({
-            domain: "CATCH_ALL",
+        // prepare response
+        Object.assign(response.domain, {
+            accuracy:
+                greylisted || isFreeMail.includes(response.domain)
+                    ? MEDIUM
+                    : LOW,
+            reason: "Catch-all domain",
         });
+        // resolve
+        return Promise.resolve(response);
     }
 
     // check for invalid recipients
-    const invalid = [];
     while (recipients.length) {
         const recipient = recipients.shift();
         // Send a RCPT TO command to every recipient
@@ -320,9 +376,12 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
             })
             .then()
             .catch((err) => {
-                invalid.push({
+                response.recipients.invalid.push({
                     local_part: recipient,
-                    error: err.code || null,
+                    error: [err.code || null, err.enhancedCode || null].join(
+                        "-"
+                    ),
+                    accuracy: isSmtpGreylisted(err) ? MEDIUM : HIGH,
                 });
             });
     }
@@ -333,21 +392,48 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
         await client.quit({ timeout: timeout });
     } catch (err) {}
 
-    // resolve empty object if no invalid recipients
-    return Promise.resolve(
-        invalid.length
-            ? {
-                  recipients: invalid,
-              }
-            : {}
-    );
+    // if we got here we can resolve whatever response we have
+    return Promise.resolve(response);
+};
+
+//
+const isSmtpGreylisted = (err) => {
+    /*
+    450 - Requested action not taken – The user’s mailbox is unavailable
+    451 - Requested action aborted – Local error in processing
+    452 - Too many emails sent or too many recipients
+    */
+    // if one of the codes above, we consider it greylisted
+    if (err.code && [450, 451, 452].indexOf(err.code) > -1) {
+        return true;
+    }
+
+    /*
+    if the error is a 5.7* code or contains blacklist|banned|denied|blocked|spam|abuse|deferred
+    we can't communicate with the SMTP due because they're blocking our IP
+    */
+    // separate codeblocks for the sake of readability
+
+    const erregex = /(blacklist|banned|denied|blocked|spam|abuse|deferred)/i;
+    if (err.message && erregex.test(err.message)) {
+        return true;
+    }
+    // check error message
+    if (err.message && err.message.startsWith("5.7")) {
+        return true;
+    }
+    // check enhanced code
+    if (err.enhancedCode && err.enhancedCode.startsWith("5.7")) {
+        return true;
+    }
+    // defaults to false
+    return false;
 };
 
 module.exports = {
     validateEmail,
     validateDomain,
-    checkFormat,
-    mxQuery,
+    validateFormat,
     isDisposable,
     isFreeMail,
     isRoleMail,

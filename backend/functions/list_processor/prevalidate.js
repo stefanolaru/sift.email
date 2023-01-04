@@ -82,14 +82,14 @@ exports.handler = async (event) => {
             uniqueRecipients.push(email);
 
             // validate format
-            const recipient = Validator.checkFormat(email);
+            const recipient = Validator.validateFormat(email);
 
             // add to invalid if error
             if (recipient.error) {
                 results.invalid.push({
                     idx: idx,
                     data: item,
-                    error: recipient.error,
+                    reason: "Invalid format",
                 });
             } else {
                 const domain = recipient.domain.toLowerCase();
@@ -98,14 +98,17 @@ exports.handler = async (event) => {
                     results.pending[domain] = [];
                 }
                 // drop directly if disposable or generic role
-                if (
-                    Validator.isDisposable(domain) ||
-                    Validator.isRoleMail(domain)
-                ) {
+                if (Validator.isDisposable(domain)) {
                     results.invalid.push({
                         idx: idx,
                         data: item,
-                        error: "Disposable domain",
+                        reason: "Disposable domain",
+                    });
+                } else if (Validator.isRoleMail(domain)) {
+                    results.invalid.push({
+                        idx: idx,
+                        data: item,
+                        reason: "Role-based address",
                     });
                 } else {
                     // queue for further validation

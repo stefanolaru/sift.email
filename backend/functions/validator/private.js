@@ -16,8 +16,16 @@ exports.handler = async (event) => {
         body: "",
     };
 
-    // get user_id from authorizer
-    const user_id = event.requestContext.authorizer.jwt.claims.sub || null;
+    // get user_id from authorizers
+    const user_id = (() => {
+        if (event.requestContext.authorizer.jwt) {
+            return event.requestContext.authorizer.jwt.claims.sub;
+        } else if (event.requestContext.authorizer.lambda) {
+            return event.requestContext.authorizer.lambda.user_id;
+        } else {
+            return null;
+        }
+    })();
 
     // no user, no luck ... unlikely thought
     if (!user_id) {

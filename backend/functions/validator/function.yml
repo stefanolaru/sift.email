@@ -16,7 +16,7 @@ publicValidator:
         RATE_LIMIT_INTERVAL: 86400 # 24 hours
         EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}
     events:
-        # create
+        # public endpoint
         - httpApi:
               path: /check/public
               method: POST
@@ -36,10 +36,17 @@ privateValidator:
         DDB_TABLE: !Ref Table
         EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}
     events:
-        # create
+        # cognito auth endpoint
+        - httpApi:
+              path: /check/private
+              method: POST
+              authorizer:
+                  type: request
+                  name: CognitoAuth
+        # api key auth endpoint
         - httpApi:
               path: /check
               method: POST
               authorizer:
                   type: request
-                  name: CognitoAuth
+                  name: ApiKeyAuth

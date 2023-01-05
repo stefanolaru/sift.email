@@ -28,3 +28,10 @@ cognitoPostAuth:
     environment:
         DDB_TABLE: !Ref Table
         WELCOME_CREDITS: ${ssm:/SIFT/WELCOME_CREDITS}
+
+# api key authorizer
+apiKeyAuthorizer:
+    role: ApiKeyAuthorizerRole
+    handler: backend/functions/auth/api_authorizer.handler
+    environment:
+        DDB_TABLE: !Ref Table

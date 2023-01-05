@@ -42,6 +42,11 @@ provider:
         cors: true
         shouldStartNameWithService: true
         authorizers:
+            ApiKeyAuth:
+                identitySource: $request.header.X-Sift-Access-Token
+                enableSimpleResponses: true
+                type: request
+                functionName: apiKeyAuthorizer
             CognitoAuth:
                 identitySource: $request.header.Authorization
                 issuerUrl: !GetAtt UserPool.ProviderURL

@@ -14,6 +14,7 @@ publicValidator:
         DDB_TABLE: !Ref Table
         RATE_LIMIT_MAX_REQUESTS: 5 # max requests per interval, set to 0 to disable rate limiting
         RATE_LIMIT_INTERVAL: 86400 # 24 hours
+        EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}
     events:
         # create
         - httpApi:
@@ -33,7 +34,7 @@ privateValidator:
             - !ImportValue sift-network-PrivateSubnet2
     environment:
         DDB_TABLE: !Ref Table
-        S3_BUCKET: !Ref ListProcessingBucket
+        EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}
     events:
         # create
         - httpApi:

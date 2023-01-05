@@ -21,6 +21,7 @@ Resources:
                           - Effect: Allow
                             Action:
                                 - dynamodb:GetItem
+                                - dynamodb:UpdateItem
                                 - dynamodb:Query
                                 - dynamodb:BatchWriteItem
                             Resource:
@@ -33,6 +34,7 @@ Resources:
                           - Effect: Allow
                             Action:
                                 - s3:GetObject
+                                - s3:PutObject
                             Resource:
                                 - !GetAtt ListProcessingBucket.Arn
                                 - !Join
@@ -55,6 +57,7 @@ Resources:
                                 - sns:Publish
                             Resource:
                                 - !Ref ListValidationEndTopic
+                                - !Ref ListProcessingEndTopic
 
                           # allow cloudwatch
                           - Effect: Allow

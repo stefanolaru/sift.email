@@ -167,6 +167,10 @@ exports.handler = async (event) => {
     const valid = [],
         invalid = [];
 
+    // set separate counters, avoids counting the table header - not the most elegant solution :/
+    let validCount = 0,
+        invalidCount = 0;
+
     // loop the original JSON and append validation results
     parsedJson.forEach((row, idx) => {
         const key = row[request.column_idx].toLowerCase();
@@ -177,12 +181,19 @@ exports.handler = async (event) => {
             // set in categories
             if (res.result == "VALID") {
                 valid.push(row);
+                validCount++;
             } else {
                 invalid.push(row);
+                invalidCount++;
             }
         } else {
             // append empty columns
             row.push(...(!idx ? ["Result", "Accuracy", "Note"] : ["", "", ""]));
+            // add table header to valid and invalid arrays
+            if (!idx) {
+                valid.push(row);
+                invalid.push(row);
+            }
         }
     });
 
@@ -190,9 +201,8 @@ exports.handler = async (event) => {
     const ts = new Date(),
         stats = {
             timestamp: ts.toISOString(),
-            invalid: invalid.length,
-            valid: valid.length,
-            total: parsedJson.length,
+            invalid: invalidCount,
+            valid: validCount,
         };
     await ddb
         .updateItem({

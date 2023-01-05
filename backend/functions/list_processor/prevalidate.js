@@ -68,6 +68,9 @@ exports.handler = async (event) => {
             pending: {}, // to be pushed to DynamoDB and for mx/smtp checks
         };
 
+    // init pending count
+    let pendingCount = 0;
+
     // loop data and make the initial validation
     data.forEach((item, idx) => {
         const email = item[column_idx] ? item[column_idx].toLowerCase() : "";
@@ -116,6 +119,8 @@ exports.handler = async (event) => {
                 } else {
                     // queue for further validation
                     results.pending[domain].push(recipient.local_part);
+                    // increment pending counter
+                    pendingCount++;
                 }
             }
         }
@@ -177,7 +182,7 @@ exports.handler = async (event) => {
                     timestamp: ts.toISOString(),
                     duplicate: results.duplicates.length,
                     invalid: results.invalid.length,
-                    pending: Object.keys(results.pending).length,
+                    pending: pendingCount,
                 },
             }),
             UpdateExpression: "SET #results=:value",

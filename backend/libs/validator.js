@@ -66,19 +66,19 @@ const validateEmail = async (input, timeout = 5000) =>
 
         // format error
         if (result.error) {
-            response["reason"] = "Invalid format";
+            response["note"] = "Invalid format";
             resolve(response);
         }
 
         // disposable check
         if (isDisposable(result.domain)) {
-            response["reason"] = "Disposable domain";
+            response["note"] = "Disposable domain";
             resolve(response);
         }
 
         // role check
         if (isRoleMail(result.domain)) {
-            response["reason"] = "Role-based address";
+            response["note"] = "Role-based address";
             resolve(response);
         }
 
@@ -89,7 +89,7 @@ const validateEmail = async (input, timeout = 5000) =>
                 if (res.recipients.invalid.length) {
                     Object.assign(response, {
                         accuracy: res.recipients.invalid[0].accuracy,
-                        reason: "Recipient does not exist",
+                        note: "Recipient does not exist",
                     });
                 } else {
                     response = res.domain; // default to domain result
@@ -249,7 +249,7 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
         // prepare response
         Object.assign(response.domain, {
             result: INVALID,
-            reason: "No MX records",
+            note: "No MX records",
         });
         //
         return Promise.resolve(response);
@@ -279,7 +279,7 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
         // prepare response
         Object.assign(response.domain, {
             accuracy: greylisted ? MEDIUM : LOW,
-            reason: "Could not connect to SMTP",
+            note: "Could not connect to SMTP",
         });
         //
         return Promise.resolve(response);
@@ -303,7 +303,7 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
         // prepare response
         Object.assign(response.domain, {
             accuracy: greylisted ? MEDIUM : LOW,
-            reason: "Could not greet SMTP",
+            note: "Could not greet SMTP",
         });
         return Promise.resolve(response);
     }
@@ -329,7 +329,7 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
         // prepare response
         Object.assign(response.domain, {
             accuracy: greylisted ? MEDIUM : LOW,
-            reason: "Could not communicate with SMTP",
+            note: "Could not communicate with SMTP",
         });
         //
         return Promise.resolve(response);
@@ -356,7 +356,7 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
         // prepare response
         Object.assign(response.domain, {
             accuracy: greylisted || isFreeMail(response.domain) ? MEDIUM : LOW,
-            reason: "Catch-all domain",
+            note: "Catch-all domain",
         });
         // resolve
         return Promise.resolve(response);
@@ -373,13 +373,19 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
             })
             .then()
             .catch((err) => {
-                response.recipients.invalid.push({
-                    local_part: recipient,
-                    error: [err.code || null, err.enhancedCode || null].join(
-                        "-"
-                    ),
-                    accuracy: isSmtpGreylisted(err) ? MEDIUM : HIGH,
-                });
+                if (!isSmtpGreylisted(err)) {
+                    response.recipients.invalid.push({
+                        local_part: recipient,
+                        error: [
+                            err.code || null,
+                            err.enhancedCode || null,
+                        ].join("-"),
+                        accuracy: HIGH,
+                    });
+                } else {
+                    // set domain response accuracy to medium
+                    response.domain.accuracy = MEDIUM;
+                }
             });
     }
 
@@ -402,7 +408,7 @@ const isSmtpGreylisted = (err) => {
     452 - Too many emails sent or too many recipients
     */
     // if one of the codes above, we consider it greylisted
-    if (err.code && [450, 451, 452].indexOf(err.code) > -1) {
+    if (err.code && [450, 451, 452].includes(err.code)) {
         return true;
     }
 

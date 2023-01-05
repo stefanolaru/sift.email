@@ -1,7 +1,7 @@
 queueConsumerValidate:
     handler: backend/functions/queue_consumer/validate.handler
     memorySize: 256
-    timeout: 300 # 5 mins max
+    timeout: 120 # 2 mins max
     reservedConcurrency: 10
     role: QueueConsumerRole
     vpc:

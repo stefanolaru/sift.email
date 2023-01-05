@@ -1,8 +1,15 @@
 # public validator
 publicValidator:
     handler: backend/functions/validator/public.handler
-    timeout: 5
+    timeout: 10
     role: PublicValidatorRole
+    vpc:
+        securityGroupIds:
+            - !Ref LambdaSecurityGroup
+        subnetIds:
+            # - !Ref PrivateSubnet
+            - !ImportValue sift-network-PrivateSubnet1
+            - !ImportValue sift-network-PrivateSubnet2
     environment:
         DDB_TABLE: !Ref Table
         RATE_LIMIT_MAX_REQUESTS: 5 # max requests per interval, set to 0 to disable rate limiting
@@ -17,6 +24,13 @@ privateValidator:
     handler: backend/functions/validator/private.handler
     timeout: 15
     role: PrivateValidatorRole
+    vpc:
+        securityGroupIds:
+            - !Ref LambdaSecurityGroup
+        subnetIds:
+            # - !Ref PrivateSubnet
+            - !ImportValue sift-network-PrivateSubnet1
+            - !ImportValue sift-network-PrivateSubnet2
     environment:
         DDB_TABLE: !Ref Table
         S3_BUCKET: !Ref ListProcessingBucket

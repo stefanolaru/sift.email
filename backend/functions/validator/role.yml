@@ -13,6 +13,8 @@ Resources:
                           Service:
                               - lambda.amazonaws.com
                       Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
             Policies:
                 - PolicyName: ${self:custom.resourceName}_public_validator
                   PolicyDocument:
@@ -58,6 +60,8 @@ Resources:
                           Service:
                               - lambda.amazonaws.com
                       Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
             Policies:
                 - PolicyName: ${self:custom.resourceName}_private_validator
                   PolicyDocument:

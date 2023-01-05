@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/stefanolaru/sift.email#readme",
   "devDependencies": {
+    "aws-sdk": "^2.1288.0",
     "serverless-export-outputs": "^1.0.2"
   },
   "dependencies": {

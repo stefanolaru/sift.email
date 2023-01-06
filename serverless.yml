@@ -67,6 +67,7 @@ functions:
     - ${file(./backend/functions/event_listener/function.yml)}
     - ${file(./backend/functions/auth/function.yml)}
     - ${file(./backend/functions/users/function.yml)}
+    - ${file(./backend/functions/requests/function.yml)}
 
 resources:
     # Infra
@@ -93,6 +94,7 @@ resources:
     - ${file(./backend/functions/event_listener/role.yml)}
     - ${file(./backend/functions/auth/role.yml)}
     - ${file(./backend/functions/users/role.yml)}
+    - ${file(./backend/functions/requests/role.yml)}
 
     # step function & role
     # - ${file(./backend/step_functions/process_list/function.yml)}

@@ -1,0 +1,16 @@
+listUserRequests:
+    handler: backend/functions/requests/index.handler
+    memorySize: 256
+    timeout: 20
+    role: UserRequestsRole
+    vpc:
+    environment:
+        DDB_TABLE: !Ref Table
+    events:
+        # cognito auth endpoint
+        - httpApi:
+              path: /requests
+              method: GET
+              authorizer:
+                  type: request
+                  name: CognitoAuth

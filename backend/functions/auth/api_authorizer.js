@@ -1,5 +1,7 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB();
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall, unmarshall } = require("@aws-sdk/util-dynamodb"),
+    ddb = new DynamoDB();
+
 exports.handler = async (event) => {
     // default authorizer response
     let response = {
@@ -21,19 +23,14 @@ exports.handler = async (event) => {
                 "#GSI": "GSI",
                 "#SK": "SK",
             },
-            ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+            ExpressionAttributeValues: marshall({
                 ":GSI": "apikey",
                 ":SK": "apikey#" + event.headers["x-sift-access-token"],
             }),
             ScanIndexForward: false,
             Limit: 1,
         })
-        .promise()
-        .then((res) =>
-            res.Items.length
-                ? AWS.DynamoDB.Converter.unmarshall(res.Items[0])
-                : null
-        )
+        .then((res) => (res.Items.length ? unmarshall(res.Items[0]) : null))
         .catch((err) => {
             console.log(err);
             return null;

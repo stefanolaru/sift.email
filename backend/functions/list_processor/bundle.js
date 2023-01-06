@@ -1,7 +1,10 @@
-const AWS = require("aws-sdk"),
-    s3 = new AWS.S3(),
-    sns = new AWS.SNS(),
-    ddb = new AWS.DynamoDB(),
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall, unmarshall } = require("@aws-sdk/util-dynamodb"),
+    ddb = new DynamoDB(),
+    { S3 } = require("@aws-sdk/client-s3"),
+    s3 = new S3(),
+    { SNS } = require("@aws-sdk/client-sns"),
+    sns = new SNS(),
     Papa = require("papaparse");
 
 // this gets triggered only via SNS, reads payload from message
@@ -20,18 +23,15 @@ exports.handler = async (event) => {
                 "#GSI": "GSI",
                 "#SK": "SK",
             },
-            ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+            ExpressionAttributeValues: marshall({
                 ":GSI": "request#private",
                 ":SK": "request#" + request_id,
             }),
             ScanIndexForward: false,
             Limit: 1,
         })
-        .promise()
         .then((res) => {
-            return res.Items.length
-                ? AWS.DynamoDB.Converter.unmarshall(res.Items[0])
-                : null;
+            return res.Items.length ? unmarshall(res.Items[0]) : null;
         })
         .catch((err) => {
             console.log(err);
@@ -59,7 +59,7 @@ exports.handler = async (event) => {
             ExpressionAttributeNames: {
                 "#PK": "PK",
             },
-            ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+            ExpressionAttributeValues: marshall({
                 ":PK": "dc#" + request_id,
             }),
             ScanIndexForward: false,
@@ -75,7 +75,6 @@ exports.handler = async (event) => {
 
         await ddb
             .query(params)
-            .promise()
             .then((res) => {
                 // update key
                 lek = res.LastEvaluatedKey ? res.LastEvaluatedKey : null;
@@ -84,7 +83,7 @@ exports.handler = async (event) => {
                     // loop all items and push into dbItems
                     res.Items.forEach((item) => {
                         // unmarshal item
-                        item = AWS.DynamoDB.Converter.unmarshall(item);
+                        item = unmarshall(item);
 
                         if (item.result) {
                             // extract invalid local parts
@@ -136,7 +135,6 @@ exports.handler = async (event) => {
             Bucket: process.env.S3_BUCKET,
             Key: "output/" + user_id + "/" + request_id + "/invalid.json",
         })
-        .promise()
         .then((res) => JSON.parse(res.Body.toString("utf-8")))
         .catch((err) => {
             console.log(err);
@@ -156,7 +154,6 @@ exports.handler = async (event) => {
             Bucket: process.env.S3_BUCKET,
             Key: "parsed/" + user_id + "/" + request_id + "/data.json",
         })
-        .promise()
         .then((res) => JSON.parse(res.Body.toString("utf-8")))
         .catch((err) => {
             console.log(err);
@@ -219,70 +216,56 @@ exports.handler = async (event) => {
             }),
             UpdateExpression: "SET #results=:value",
         })
-        .promise()
         .then()
         .catch((err) => {
             console.log(err);
         });
 
     // write the json results
-
     const resultsS3Prefix = "output/" + user_id + "/" + request_id + "/results",
         s3Promises = [
             // full results JSON
-            s3
-                .upload({
-                    Bucket: process.env.S3_BUCKET,
-                    Body: JSON.stringify(parsedJson),
-                    Key: resultsS3Prefix + "/full.json",
-                    ContentType: "application/json",
-                })
-                .promise(),
+            s3.upload({
+                Bucket: process.env.S3_BUCKET,
+                Body: JSON.stringify(parsedJson),
+                Key: resultsS3Prefix + "/full.json",
+                ContentType: "application/json",
+            }),
             // full results CSV
-            s3
-                .upload({
-                    Bucket: process.env.S3_BUCKET,
-                    Body: Papa.unparse(parsedJson),
-                    Key: resultsS3Prefix + "/full.csv",
-                    ContentType: "text/csv",
-                })
-                .promise(),
+            s3.upload({
+                Bucket: process.env.S3_BUCKET,
+                Body: Papa.unparse(parsedJson),
+                Key: resultsS3Prefix + "/full.csv",
+                ContentType: "text/csv",
+            }),
             // valid results JSON
-            s3
-                .upload({
-                    Bucket: process.env.S3_BUCKET,
-                    Body: JSON.stringify(valid),
-                    Key: resultsS3Prefix + "/valid.json",
-                    ContentType: "application/json",
-                })
-                .promise(),
+            s3.upload({
+                Bucket: process.env.S3_BUCKET,
+                Body: JSON.stringify(valid),
+                Key: resultsS3Prefix + "/valid.json",
+                ContentType: "application/json",
+            }),
             // valid results CSV
-            s3
-                .upload({
-                    Bucket: process.env.S3_BUCKET,
-                    Body: Papa.unparse(valid),
-                    Key: resultsS3Prefix + "/valid.csv",
-                    ContentType: "text/csv",
-                })
-                .promise(),
+            s3.upload({
+                Bucket: process.env.S3_BUCKET,
+                Body: Papa.unparse(valid),
+                Key: resultsS3Prefix + "/valid.csv",
+                ContentType: "text/csv",
+            }),
             // invalid results JSON
-            s3
-                .upload({
-                    Bucket: process.env.S3_BUCKET,
-                    Body: JSON.stringify(invalid),
-                    Key: resultsS3Prefix + "/invalid.json",
-                    ContentType: "application/json",
-                })
-                .promise(),
+            s3.upload({
+                Bucket: process.env.S3_BUCKET,
+                Body: JSON.stringify(invalid),
+                Key: resultsS3Prefix + "/invalid.json",
+                ContentType: "application/json",
+            }),
             // invalid results CSV
-            s3
-                .upload({
-                    Bucket: process.env.S3_BUCKET,
-                    Body: Papa.unparse(invalid),
-                    Key: resultsS3Prefix + "/invalid.csv",
-                    ContentType: "text/csv",
-                })
-                .promise(),
+            s3.upload({
+                Bucket: process.env.S3_BUCKET,
+                Body: Papa.unparse(invalid),
+                Key: resultsS3Prefix + "/invalid.csv",
+                ContentType: "text/csv",
+            }),
         ];
 
     await Promise.allSettled(s3Promises)
@@ -297,7 +280,6 @@ exports.handler = async (event) => {
             Message: JSON.stringify(event),
             TopicArn: process.env.SNS_TOPIC,
         })
-        .promise()
         .then()
         .catch((err) => {
             console.log(err);

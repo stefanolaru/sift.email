@@ -1,5 +1,7 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB(),
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall } = require("@aws-sdk/util-dynamodb");
+
+const ddb = new DynamoDB(),
     Validator = require("../../libs/validator"),
     KSUID = require("ksuid");
 
@@ -28,13 +30,12 @@ exports.handler = async (event) => {
                 ExpressionAttributeNames: {
                     "#PK": "PK",
                 },
-                ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+                ExpressionAttributeValues: marshall({
                     ":PK": "public#" + ipAddress,
                 }),
                 ScanIndexForward: false,
                 Limit: process.env.RATE_LIMIT_MAX_REQUESTS,
             })
-            .promise()
             .then((res) => res.Items.length || 0)
             .catch((err) => {
                 console.log(err);
@@ -72,7 +73,7 @@ exports.handler = async (event) => {
     await ddb
         .putItem({
             TableName: process.env.DDB_TABLE,
-            Item: AWS.DynamoDB.Converter.marshall({
+            Item: marshall({
                 PK: "public#" + ipAddress,
                 SK: ksuid.string,
                 created_at: Math.floor(ts / 1000),
@@ -83,7 +84,6 @@ exports.handler = async (event) => {
                     parseInt(process.env.RATE_LIMIT_INTERVAL),
             }),
         })
-        .promise()
         .then()
         .catch((err) => {
             console.log(err);

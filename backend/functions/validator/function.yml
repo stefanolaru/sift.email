@@ -15,6 +15,7 @@ publicValidator:
         RATE_LIMIT_MAX_REQUESTS: 5 # max requests per interval, set to 0 to disable rate limiting
         RATE_LIMIT_INTERVAL: 86400 # 24 hours
         EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}
+        MAIL_HOSTNAME: ${ssm:/SIFT/MAIL_HOSTNAME}
     events:
         # public endpoint
         - httpApi:
@@ -35,6 +36,7 @@ privateValidator:
     environment:
         DDB_TABLE: !Ref Table
         EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}
+        MAIL_HOSTNAME: ${ssm:/SIFT/MAIL_HOSTNAME}
     events:
         # cognito auth endpoint
         - httpApi:

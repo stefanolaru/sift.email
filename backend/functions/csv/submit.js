@@ -1,6 +1,8 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB(),
-    s3 = new AWS.S3();
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall, unmarshall } = require("@aws-sdk/util-dynamodb"),
+    ddb = new DynamoDB(),
+    { S3 } = require("@aws-sdk/client-s3"),
+    s3 = new S3();
 
 exports.handler = async (event) => {
     // prepare the response object
@@ -44,7 +46,6 @@ exports.handler = async (event) => {
             Bucket: process.env.S3_BUCKET,
             Key: "parsed/" + user_id + "/" + data.csv_id + "/preview.json",
         })
-        .promise()
         .then((res) => JSON.parse(res.Body.toString("utf-8")))
         .catch((err) => {
             console.log(err);
@@ -64,7 +65,7 @@ exports.handler = async (event) => {
     const userProfile = await ddb
         .getItem({
             TableName: process.env.DDB_TABLE,
-            Key: AWS.DynamoDB.Converter.marshall({
+            Key: marshall({
                 PK: "user#" + user_id,
                 SK: "profile",
             }),
@@ -74,11 +75,8 @@ exports.handler = async (event) => {
             },
             ProjectionExpression: "#credits, #usage",
         })
-        .promise()
         .then((res) => {
-            return res.Item
-                ? AWS.DynamoDB.Converter.unmarshall(res.Item)
-                : null;
+            return res.Item ? unmarshall(res.Item) : null;
         })
         .catch((err) => {
             console.log(err);
@@ -112,7 +110,7 @@ exports.handler = async (event) => {
     await ddb
         .putItem({
             TableName: process.env.DDB_TABLE,
-            Item: AWS.DynamoDB.Converter.marshall({
+            Item: marshall({
                 PK: "user#" + user_id,
                 SK: "request#" + data.csv_id,
                 created_at: Math.floor(ts / 1000),
@@ -123,22 +121,19 @@ exports.handler = async (event) => {
             }),
             ConditionExpression: "attribute_not_exists(SK)",
         })
-        .promise()
         .then(() => {
-            return s3
-                .copyObject({
-                    Bucket: process.env.S3_BUCKET,
-                    CopySource:
-                        "/" +
-                        process.env.S3_BUCKET +
-                        "/parsed/" +
-                        user_id +
-                        "/" +
-                        data.csv_id +
-                        "/data.json",
-                    Key: "input/" + user_id + "/" + data.csv_id + "/data.json",
-                })
-                .promise();
+            return s3.copyObject({
+                Bucket: process.env.S3_BUCKET,
+                CopySource:
+                    "/" +
+                    process.env.S3_BUCKET +
+                    "/parsed/" +
+                    user_id +
+                    "/" +
+                    data.csv_id +
+                    "/data.json",
+                Key: "input/" + user_id + "/" + data.csv_id + "/data.json",
+            });
         })
         .then(() => {
             response.body = {

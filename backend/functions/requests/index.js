@@ -1,5 +1,6 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB();
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall, unmarshall } = require("@aws-sdk/util-dynamodb"),
+    ddb = new DynamoDB();
 
 exports.handler = async (event) => {
     // prepare the response object
@@ -42,19 +43,16 @@ exports.handler = async (event) => {
                 "#PK": "PK",
                 "#SK": "SK",
             },
-            ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+            ExpressionAttributeValues: marshall({
                 ":PK": "user#" + user_id,
                 ":prefix": "request#",
             }),
             ScanIndexForward: false,
         })
-        .promise()
         .then((res) => {
             const items = [];
             if (res.Items.length) {
-                res.Items.forEach((item) =>
-                    items.push(AWS.DynamoDB.Converter.unmarshall(item))
-                );
+                res.Items.forEach((item) => items.push(unmarshall(item)));
             }
             return items;
         })

@@ -1,5 +1,5 @@
-const AWS = require("aws-sdk"),
-    ses = new AWS.SES();
+const { SES } = require("@aws-sdk/client-ses"),
+    ses = new SES();
 // create custom auth challenge
 exports.handler = async (event) => {
     let secretLoginCode;
@@ -26,7 +26,6 @@ exports.handler = async (event) => {
                     code: secretLoginCode,
                 }),
             })
-            .promise()
             .then((res) => console.log(res))
             .catch((err) => console.log(err));
     } else {

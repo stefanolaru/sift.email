@@ -1,5 +1,6 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB(),
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall } = require("@aws-sdk/util-dynamodb"),
+    ddb = new DynamoDB(),
     Validator = require("../../libs/validator");
 
 exports.handler = async (event) => {
@@ -26,7 +27,7 @@ exports.handler = async (event) => {
         await ddb
             .updateItem({
                 TableName: process.env.DDB_TABLE,
-                Key: AWS.DynamoDB.Converter.marshall({
+                Key: marshall({
                     PK: item.PK,
                     SK: item.SK,
                 }),
@@ -34,13 +35,12 @@ exports.handler = async (event) => {
                     "#GSI": "GSI",
                     "#result": "result",
                 },
-                ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+                ExpressionAttributeValues: marshall({
                     ":GSI": item.GSI.replace("#pending", "#done"),
                     ":result": result,
                 }),
                 UpdateExpression: "SET #GSI=:GSI,#result=:result",
             })
-            .promise()
             .then()
             .catch((err) => {
                 console.log(err);

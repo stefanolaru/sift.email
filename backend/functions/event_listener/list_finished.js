@@ -1,5 +1,6 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB();
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
+ddb = new DynamoDB();
 //
 exports.handler = async (event) => {
     // parse message json
@@ -13,7 +14,7 @@ exports.handler = async (event) => {
     await ddb
         .updateItem({
             TableName: process.env.DDB_TABLE,
-            Key: AWS.DynamoDB.Converter.marshall({
+            Key: marshall({
                 PK: "user#" + meta.user_id + "#request",
                 SK: meta.request_id,
             }),
@@ -21,13 +22,12 @@ exports.handler = async (event) => {
                 "#result": "result",
                 "#updated_at": "updated_at",
             },
-            ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+            ExpressionAttributeValues: marshall({
                 ":result": msg,
                 ":updated_at": Math.floor(ts / 1000),
             }),
             UpdateExpression: "SET #result=:result, #updated_at=:updated_at",
         })
-        .promise()
         .then()
         .catch((err) => {
             console.log(err);

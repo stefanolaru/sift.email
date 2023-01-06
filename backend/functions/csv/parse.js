@@ -1,5 +1,5 @@
-const AWS = require("aws-sdk"),
-    s3 = new AWS.S3(),
+const { S3 } = require("@aws-sdk/client-s3"),
+    s3 = new S3(),
     Papa = require("papaparse");
 
 exports.handler = async (event) => {
@@ -10,7 +10,6 @@ exports.handler = async (event) => {
             Bucket: process.env.S3_BUCKET,
             Key: key,
         })
-        .promise()
         .then((res) => {
             return {
                 metadata: res.Metadata,
@@ -47,7 +46,6 @@ exports.handler = async (event) => {
                     request_id: metadata.request_id,
                 },
             })
-            .promise()
             .then(() => {
                 // write the data preview
                 return s3

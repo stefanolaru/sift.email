@@ -1,7 +1,10 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB(),
-    sns = new AWS.SNS(),
-    eb = new AWS.EventBridge();
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall } = require("@aws-sdk/util-dynamodb"),
+    ddb = new DynamoDB(),
+    { SNS } = require("@aws-sdk/client-sns"),
+    sns = new SNS(),
+    { EventBridge } = require("@aws-sdk/client-eventbridge"),
+    eb = new EventBridge();
 
 exports.handler = async (event) => {
     // query request for pending items
@@ -13,13 +16,12 @@ exports.handler = async (event) => {
             ExpressionAttributeNames: {
                 "#GSI": "GSI",
             },
-            ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+            ExpressionAttributeValues: marshall({
                 ":GSI": event.request_id + "#pending",
             }),
             ScanIndexForward: false,
             Limit: 1,
         })
-        .promise()
         .then((res) => (res.Items ? res.Items.length : 1))
         .catch((err) => {
             console.log(err);
@@ -34,7 +36,6 @@ exports.handler = async (event) => {
                 Message: JSON.stringify(event),
                 TopicArn: process.env.SNS_TOPIC,
             })
-            .promise()
             .then()
             .catch((err) => {
                 console.log(err);
@@ -46,13 +47,10 @@ exports.handler = async (event) => {
                 Ids: ["sift_" + event.request_id],
                 Rule: "sift_" + event.request_id,
             })
-            .promise()
             .then((res) => {
-                return eb
-                    .deleteRule({
-                        Name: "sift_" + event.request_id,
-                    })
-                    .promise();
+                return eb.deleteRule({
+                    Name: "sift_" + event.request_id,
+                });
             })
             .then()
             .catch((err) => {

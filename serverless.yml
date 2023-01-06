@@ -28,7 +28,7 @@ provider:
     deploymentMethod: direct
     stage: ${opt:stage, 'dev'}
     endpointType: REGIONAL
-    #runtime: nodejs14.x
+    runtime: nodejs18.x
     memorySize: 128
     timeout: 5
     # enable xray tracing

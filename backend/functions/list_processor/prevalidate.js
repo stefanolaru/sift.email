@@ -1,8 +1,12 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB(),
-    s3 = new AWS.S3(),
-    sns = new AWS.SNS(),
-    eb = new AWS.EventBridge(),
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall, unmarshall } = require("@aws-sdk/util-dynamodb"),
+    ddb = new DynamoDB(),
+    { S3 } = require("@aws-sdk/client-s3"),
+    s3 = new S3(),
+    { SNS } = require("@aws-sdk/client-sns"),
+    sns = new SNS(),
+    { EventBridge } = require("@aws-sdk/client-eventbridge"),
+    eb = new EventBridge(),
     Validator = require("../../libs/validator"),
     Utils = require("../../libs/utils");
 
@@ -16,7 +20,6 @@ exports.handler = async (event) => {
             Bucket: process.env.S3_BUCKET,
             Key: event.detail.object.key,
         })
-        .promise()
         .then((res) => {
             return {
                 metadata: res.Metadata,
@@ -40,16 +43,13 @@ exports.handler = async (event) => {
     const request = await ddb
         .getItem({
             TableName: process.env.DDB_TABLE,
-            Key: AWS.DynamoDB.Converter.marshall({
+            Key: marshall({
                 PK: "user#" + metadata.user_id,
                 SK: "request#" + metadata.request_id,
             }),
         })
-        .promise()
         .then((res) => {
-            return res.Item
-                ? AWS.DynamoDB.Converter.unmarshall(res.Item)
-                : null;
+            return res.Item ? unmarshall(res.Item) : null;
         })
         .catch((err) => {
             console.log(err);
@@ -138,21 +138,19 @@ exports.handler = async (event) => {
         //
         if (output[k] > 0) {
             promises.push(
-                s3
-                    .upload({
-                        Bucket: process.env.S3_BUCKET,
-                        Body: JSON.stringify(results[k]),
-                        Key:
-                            "output/" +
-                            metadata.user_id +
-                            "/" +
-                            metadata.request_id +
-                            "/" +
-                            k +
-                            ".json",
-                        ContentType: "application/json",
-                    })
-                    .promise()
+                s3.upload({
+                    Bucket: process.env.S3_BUCKET,
+                    Body: JSON.stringify(results[k]),
+                    Key:
+                        "output/" +
+                        metadata.user_id +
+                        "/" +
+                        metadata.request_id +
+                        "/" +
+                        k +
+                        ".json",
+                    ContentType: "application/json",
+                })
             );
         }
     });
@@ -170,14 +168,14 @@ exports.handler = async (event) => {
     await ddb
         .updateItem({
             TableName: process.env.DDB_TABLE,
-            Key: AWS.DynamoDB.Converter.marshall({
+            Key: marshall({
                 PK: request.PK,
                 SK: request.SK,
             }),
             ExpressionAttributeNames: {
                 "#results": "prevalidation_results",
             },
-            ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+            ExpressionAttributeValues: marshall({
                 ":value": {
                     timestamp: ts.toISOString(),
                     duplicate: results.duplicates.length,
@@ -187,7 +185,6 @@ exports.handler = async (event) => {
             }),
             UpdateExpression: "SET #results=:value",
         })
-        .promise()
         .then()
         .catch((err) => {
             console.log(err);
@@ -203,7 +200,6 @@ exports.handler = async (event) => {
                 }),
                 TopicArn: process.env.SNS_TOPIC,
             })
-            .promise()
             .then()
             .catch((err) => {
                 console.log(err);
@@ -217,22 +213,19 @@ exports.handler = async (event) => {
             State: "ENABLED",
             ScheduleExpression: "rate(1 minute)",
         })
-        .promise()
         .then((res) => {
-            return eb
-                .putTargets({
-                    Rule: "sift_" + metadata.request_id,
-                    Targets: [
-                        {
-                            Arn: process.env.EB_RULE_TARGET_ARN,
-                            Id: "sift_" + metadata.request_id,
-                            Input: JSON.stringify({
-                                request_id: metadata.request_id,
-                            }),
-                        },
-                    ],
-                })
-                .promise();
+            return eb.putTargets({
+                Rule: "sift_" + metadata.request_id,
+                Targets: [
+                    {
+                        Arn: process.env.EB_RULE_TARGET_ARN,
+                        Id: "sift_" + metadata.request_id,
+                        Input: JSON.stringify({
+                            request_id: metadata.request_id,
+                        }),
+                    },
+                ],
+            });
         })
         .then((res) => (!res.FailedEntryCount ? true : false))
         .catch((err) => {
@@ -279,7 +272,6 @@ exports.handler = async (event) => {
         // write
         await ddb
             .batchWriteItem(params)
-            .promise()
             .then((res) => {
                 // if has UnprocessedItems, push back to chunks
                 if (res.UnprocessedItems[process.env.DDB_TABLE]) {

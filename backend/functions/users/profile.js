@@ -1,5 +1,6 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB();
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall, unmarshall } = require("@aws-sdk/util-dynamodb"),
+    ddb = new DynamoDB();
 
 exports.handler = async (event) => {
     // gateway headers
@@ -20,7 +21,7 @@ exports.handler = async (event) => {
     response.body = await ddb
         .getItem({
             TableName: process.env.DDB_TABLE,
-            Key: AWS.DynamoDB.Converter.marshall({
+            Key: marshall({
                 PK: "user#" + user_id,
                 SK: "profile",
             }),
@@ -34,11 +35,8 @@ exports.handler = async (event) => {
             ProjectionExpression:
                 "#credits, #usage, #created_at, #user_name, #user_email",
         })
-        .promise()
         .then((res) => {
-            return res.Item
-                ? AWS.DynamoDB.Converter.unmarshall(res.Item)
-                : null;
+            return res.Item ? unmarshall(res.Item) : null;
         })
         .catch((err) => {
             console.log(err);

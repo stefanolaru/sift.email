@@ -1,5 +1,7 @@
-const AWS = require("aws-sdk"),
-    ddb = new AWS.DynamoDB(),
+const { DynamoDB } = require("@aws-sdk/client-dynamodb"),
+    { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
+
+const ddb = new DynamoDB(),
     Validator = require("../../libs/validator"),
     KSUID = require("ksuid");
 
@@ -49,16 +51,13 @@ exports.handler = async (event) => {
     const userProfile = await ddb
         .getItem({
             TableName: process.env.DDB_TABLE,
-            Key: AWS.DynamoDB.Converter.marshall({
+            Key: marshall({
                 PK: "user#" + user_id,
                 SK: "profile",
             }),
         })
-        .promise()
         .then((res) => {
-            return res.Item
-                ? AWS.DynamoDB.Converter.unmarshall(res.Item)
-                : null;
+            return res.Item ? unmarshall(res.Item) : null;
         })
         .catch((err) => {
             console.log(err);
@@ -99,16 +98,15 @@ exports.handler = async (event) => {
     await ddb
         .putItem({
             TableName: process.env.DDB_TABLE,
-            Item: AWS.DynamoDB.Converter.marshall({
-                PK: "user#" + user_id + "#request",
-                SK: ksuid.string,
+            Item: marshall({
+                PK: "user#" + user_id,
+                SK: "request#" + ksuid.string,
                 created_at: Math.floor(ts / 1000),
                 GSI: "request#private",
                 entity_type: "request",
                 usage: 1, // number of submitted recipients
             }),
         })
-        .promise()
         .then()
         .catch((err) => {
             console.log(err);

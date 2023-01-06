@@ -1,5 +1,5 @@
-const AWS = require("aws-sdk"),
-    s3 = new AWS.S3(),
+const { S3 } = require("@aws-sdk/client-s3"),
+    s3 = new S3(),
     KSUID = require("ksuid");
 
 exports.handler = async (event) => {
@@ -83,7 +83,6 @@ exports.handler = async (event) => {
                         request_id: ksuid.string.toString(),
                     },
                 })
-                .promise()
                 .then((res) => {
                     return {
                         key: res.Key,
@@ -120,7 +119,6 @@ exports.handler = async (event) => {
                         Parts: data.parts,
                     },
                 })
-                .promise()
                 .then((res) => {
                     return {
                         key: res.Key,

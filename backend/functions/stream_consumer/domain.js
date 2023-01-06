@@ -1,5 +1,6 @@
-const AWS = require("aws-sdk"),
-    sqs = new AWS.SQS(),
+const { SQS } = require("@aws-sdk/client-sqs"),
+    sqs = new SQS(),
+    { unmarshall } = require("@aws-sdk/util-dynamodb"),
     Utils = require("../../libs/utils");
 
 exports.handler = async (event) => {
@@ -15,7 +16,7 @@ exports.handler = async (event) => {
         let record = event.Records.shift();
 
         // unmarshal record
-        record = AWS.DynamoDB.Converter.unmarshall(record.dynamodb.NewImage);
+        record = unmarshall(record.dynamodb.NewImage);
 
         // generate batch ID
         const sqsId = (record.PK + record.SK).replace(/[\#\.]/g, "-");
@@ -30,12 +31,10 @@ exports.handler = async (event) => {
     if (sqsMessages.length) {
         Utils.chunkArray(sqsMessages, 10).forEach((chunk) => {
             sqsPromises.push(
-                sqs
-                    .sendMessageBatch({
-                        Entries: chunk,
-                        QueueUrl: process.env.QUEUE,
-                    })
-                    .promise()
+                sqs.sendMessageBatch({
+                    Entries: chunk,
+                    QueueUrl: process.env.QUEUE,
+                })
             );
         });
 

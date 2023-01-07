@@ -11,7 +11,7 @@ export default {
             this.loading = true;
             this.$http
                 .post(
-                    "https://" + process.env.ApiDomain + "/check",
+                    "https://" + process.env.ApiDomain + "/check/private",
                     {
                         email: this.email,
                     },
@@ -36,20 +36,25 @@ export default {
 };
 </script>
 <template>
-    <form class="mt-6" @submit.prevent="verify">
+    <form class="flex mt-6 space-x-3" @submit.prevent="verify">
         <input
             type="email"
             name="email"
-            class="w-full h-5 px-3 py-5 mt-1 border rounded-md hover:outline-none focus:outline-none focus:ring-indigo-500 focus:ring-1"
+            class="w-full h-5 px-3 py-6 leading-none border rounded-md hover:outline-none focus:outline-none focus:ring-indigo-500 focus:ring-1"
             v-model="email"
         />
-        <div class="flex items-baseline justify-between mt-6">
+        <div class="flex items-baseline justify-between">
             <button
                 type="submit"
                 :disabled="loading"
-                class="px-12 py-3 text-white bg-indigo-500 rounded-md hover:bg-indigo-600"
-                v-text="loading ? 'Please wait ...' : 'Submit'"
+                class="px-6 py-3 text-white bg-indigo-500 rounded-md leading-non hover:bg-indigo-600"
+                v-text="loading ? 'Please wait ...' : 'Check'"
             ></button>
         </div>
     </form>
 </template>
+<style>
+.uppy-DragDrop-inner {
+    padding: 0;
+}
+</style>

@@ -1,5 +1,7 @@
 <script>
 import Uploader from "./account/uploader.vue";
+import Sidebar from "./account/sidebar.vue";
+import RequestHistory from "./account/request-history.vue";
 import FormSingle from "./account/form-single.vue";
 import ListPreview from "./account/list-preview.vue";
 export default {
@@ -13,11 +15,29 @@ export default {
     components: {
         Uploader,
         FormSingle,
+        Sidebar,
+        RequestHistory,
         ListPreview,
     },
     created() {
         this.$http
             .get("https://" + process.env.ApiDomain + "/profile", {
+                params: {},
+                headers: {
+                    Authorization:
+                        this.$auth.getCurrentUser().signInUserSession
+                            .accessToken.jwtToken,
+                },
+            })
+            .then((res) => {
+                // profile
+                this.profile = res.data;
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+        this.$http
+            .get("https://" + process.env.ApiDomain + "/requests", {
                 params: {},
                 headers: {
                     Authorization:
@@ -41,23 +61,58 @@ export default {
 };
 </script>
 <template>
-    <div class="max-w-6xl p-12 mx-auto mt-24 bg-white rounded-sm sm:w-full">
-        <template v-if="!listSummary">
-            <div class="grid grid-cols-2 gap-12">
-                <div>
-                    <h2 class="mb-3 text-4xl font-bold">
-                        Remove invalid emails from your list
-                    </h2>
-                    <p>Check if an email address really exists.</p>
-                    <form-single></form-single>
+    <div class="flex max-w-6xl mx-auto mt-12 bg-white rounded-sm sm:w-full">
+        <sidebar :profile="profile"></sidebar>
+        <div class="flex-1 min-w-0 p-12">
+            <template v-if="!listSummary">
+                <div class="grid grid-cols-2 gap-12">
+                    <!-- <svg viewBox="0 0 240 240">
+                    <circle
+                        cx="120"
+                        cy="120"
+                        r="100"
+                        fill="none"
+                        stroke="black"
+                        stroke-width="40"
+                        stroke-dasharray="200,400"
+                    />
+                    <circle
+                        cx="120"
+                        cy="120"
+                        r="100"
+                        fill="none"
+                        stroke="red"
+                        stroke-width="40"
+                        stroke-dasharray="200,400"
+                    />
+                    <circle
+                        cx="120"
+                        cy="120"
+                        r="100"
+                        fill="none"
+                        stroke="black"
+                        stroke-width="40"
+                        stroke-dasharray="200,400"
+                    />
+                </svg> -->
+                    <div>
+                        <h2 class="text-4xl font-bold">
+                            Let's sift out the junk.
+                        </h2>
+                        <div class="mt-6">
+                            <p>Check if an email address really exists.</p>
+                            <form-single></form-single>
+                        </div>
+                    </div>
+                    <uploader @processed="generateListPreview"></uploader>
                 </div>
-                <uploader @processed="generateListPreview"></uploader>
-            </div>
-        </template>
-        <list-preview
-            v-else
-            :summary="listSummary"
-            :csv="csvFile"
-        ></list-preview>
+            </template>
+            <list-preview
+                v-else
+                :summary="listSummary"
+                :csv="csvFile"
+            ></list-preview>
+            <!--<request-history :profile="profile"></request-history>-->
+        </div>
     </div>
 </template>

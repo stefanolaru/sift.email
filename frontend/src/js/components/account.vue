@@ -69,10 +69,10 @@ export default {
             <template v-if="!listSummary">
                 <div class="grid grid-cols-2 gap-12">
                     <div>
-                        <h2 class="text-4xl font-bold">
-                            Let's sift out the junk.
+                        <h2 class="text-4xl font-bold mb-9">
+                            Check email addresses in bulk or individually
                         </h2>
-                        <div class="mt-6">
+                        <div>
                             <p>Check if an email address really exists.</p>
                             <form-single></form-single>
                         </div>

@@ -86,8 +86,8 @@ export default {
                     result.result == 'VALID' &&
                     result.accuracy != 'HIGH',
                 'border-red-500 border-2': result && result.result == 'INVALID',
-                'bg-slate-50': !result,
-                'bg-white': result,
+                'bg-slate-50 dark:bg-slate-800': !result,
+                'bg-white dark:bg-slate-700': result,
             }"
         >
             <div

@@ -20,10 +20,28 @@ export default {
             previewRetryIncrement: 1000,
             previewMaxRetries: 10,
             listSummary: null,
+            dragOver: false,
         };
     },
     mounted() {
         this.mountUploader();
+    },
+    computed: {
+        dragDropPrimaryText() {
+            if (this.uploading) {
+                return "Uploading";
+            } else if (this.processing) {
+                return "Processing";
+            } else {
+                return "Drag and drop your list";
+            }
+        },
+        dragDropSecondaryText() {
+            if (this.uploading || this.processing) {
+                return "Please wait ...";
+            }
+            return "Upload your email list in <strong>CSV format</strong>";
+        },
     },
     watch: {
         csvFile() {
@@ -60,12 +78,13 @@ export default {
             this.uppy
                 .use(DragDrop, {
                     target: "#uploader",
-                    locale: {
-                        strings: {
-                            dropHereOr: "Drag and drop your list",
-                        },
+
+                    onDragOver() {
+                        vm.dragOver = true;
                     },
-                    note: "Your email list in CSV format",
+                    onDragLeave() {
+                        vm.dragOver = false;
+                    },
                 })
                 .use(ProgressBar, {
                     target: ".uppy-progress",
@@ -169,7 +188,6 @@ export default {
                 })
                 .on("file-added", (file) => {
                     this.uploading = true;
-                    console.log("file added!");
                 })
                 .on("upload-error", (file, err, response) => {
                     console.log(err);
@@ -233,7 +251,11 @@ export default {
                     height="636"
                     rx="15"
                     ry="15"
-                    fill="none"
+                    :class="{
+                        'fill-none': !dragOver,
+                        'fill-slate-50 stroke-indigo-500': dragOver,
+                    }"
+                    class="duration-200"
                     stroke="url(#linear)"
                     stroke-width="3"
                     stroke-dasharray="12,6"
@@ -245,9 +267,14 @@ export default {
                     class="absolute top-0 left-0 flex flex-col justify-center w-full h-full text-center"
                 >
                     <svg
-                        class="w-32 h-32 mx-auto -mt-8 fill-gray-300"
+                        class="w-32 h-32 mx-auto -mt-8 duration-200"
+                        :class="{
+                            'fill-gray-300': !dragOver,
+                            'fill-gray-500 dark:fill-white': dragOver,
+                        }"
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 100 100"
+                        v-if="!uploading && !processing"
                     >
                         <path
                             d="M64.9,34.9H30.3c-2.7,0-4.8,2.2-4.8,4.8v0.8c0,0.4,0.4,0.8,0.8,0.8h32.1c2.7,0,4.8,2.2,4.8,4.8v23
@@ -265,12 +292,37 @@ export default {
                             />
                         </g>
                     </svg>
-                    <div class="text-2xl font-bold">
-                        Drag and drop your list
-                    </div>
-                    <div class="mt-1 text-sm text-gray-400">
-                        Upload your email list in <strong>CSV format</strong>
-                    </div>
+                    <svg
+                        class="w-16 h-16 mx-auto mb-3 -mt-8 duration-200 fill-gray-500 dark:fill-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 32 32"
+                        v-if="uploading"
+                    >
+                        <path
+                            d="M16,17.172l6.414,6.414l-2.828,2.828L18,24.828V30h-4v-5.172l-1.586,1.586l-2.828-2.828L16,17.172
+	z M26,10c0-2.761-2.239-5-5-5c-0.642,0-1.251,0.132-1.815,0.352C18.076,3.354,15.947,2,13.5,2c-3.422,0-6.22,2.646-6.475,6.003
+	C7.017,8.002,7.009,8,7,8c-2.761,0-5,2.239-5,5s2.239,5,5,5h6.758L16,15.758L18.242,18H26c2.209,0,4-1.791,4-4
+	C30,11.791,28.209,10,26,10z"
+                        />
+                    </svg>
+                    <svg
+                        class="w-24 h-24 mx-auto mb-3 -mt-8 duration-200 fill-gray-500 dark:fill-white"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        v-if="processing"
+                    >
+                        <path
+                            d="M14 5.714a1.474 1.474 0 0 0 0 2.572l-.502 1.684a1.473 1.473 0 0 0-1.553 2.14l-1.443 1.122A1.473 1.473 0 0 0 8.143 14l-2.304-.006a1.473 1.473 0 0 0-2.352-.765l-1.442-1.131A1.473 1.473 0 0 0 .5 9.968L0 8.278a1.474 1.474 0 0 0 0-2.555l.5-1.69a1.473 1.473 0 0 0 1.545-2.13L3.487.77A1.473 1.473 0 0 0 5.84.005L8.143 0a1.473 1.473 0 0 0 2.358.768l1.444 1.122a1.473 1.473 0 0 0 1.553 2.14L14 5.714zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.393.061a7.976 7.976 0 0 0 .545-4.058L16.144 6a1.473 1.473 0 0 0 2.358.768l1.444 1.122a1.473 1.473 0 0 0 1.553 2.14L22 11.714a1.474 1.474 0 0 0 0 2.572l-.502 1.684a1.473 1.473 0 0 0-1.553 2.14l-1.443 1.122a1.473 1.473 0 0 0-2.359.768l-2.304-.006a1.473 1.473 0 0 0-2.352-.765l-1.442-1.131a1.473 1.473 0 0 0-1.545-2.13l-.312-1.056a7.964 7.964 0 0 0 3.821-1.674 3 3 0 1 0 2.384-3.177z"
+                        />
+                    </svg>
+                    <div
+                        class="text-2xl font-bold"
+                        v-html="dragDropPrimaryText"
+                    ></div>
+                    <div
+                        class="mt-1 text-sm text-gray-400"
+                        v-html="dragDropSecondaryText"
+                    ></div>
                 </div>
                 <div id="uploader" class="flex w-full h-full"></div>
                 <div class="uppy-progress"></div>

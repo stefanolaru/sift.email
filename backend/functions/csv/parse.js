@@ -13,7 +13,7 @@ exports.handler = async (event) => {
         .then((res) => {
             return {
                 metadata: res.Metadata,
-                data: res.Body.toString("utf-8"),
+                data: res.Body,
             };
         })
         .catch((err) => {
@@ -27,11 +27,11 @@ exports.handler = async (event) => {
     // no csv, stop early
     if (!data) return;
 
-    const parsed = Papa.parse(data);
+    const parsed = Papa.parse(await data.transformToString("utf-8"));
     if (parsed.data && parsed.data.length) {
         // return header and total rows
         await s3
-            .upload({
+            .putObject({
                 Bucket: process.env.S3_BUCKET,
                 Body: JSON.stringify(parsed.data),
                 Key:
@@ -48,23 +48,21 @@ exports.handler = async (event) => {
             })
             .then(() => {
                 // write the data preview
-                return s3
-                    .upload({
-                        Bucket: process.env.S3_BUCKET,
-                        Body: JSON.stringify({
-                            preview: parsed.data.slice(0, 14), // get the first 15 items
-                            total_rows: parsed.data.length,
-                            csv_id: metadata.request_id,
-                        }),
-                        Key:
-                            "parsed/" +
-                            metadata.user_id +
-                            "/" +
-                            metadata.request_id +
-                            "/preview.json",
-                        ContentType: "application/json",
-                    })
-                    .promise();
+                return s3.putObject({
+                    Bucket: process.env.S3_BUCKET,
+                    Body: JSON.stringify({
+                        preview: parsed.data.slice(0, 14), // get the first 15 items
+                        total_rows: parsed.data.length,
+                        csv_id: metadata.request_id,
+                    }),
+                    Key:
+                        "parsed/" +
+                        metadata.user_id +
+                        "/" +
+                        metadata.request_id +
+                        "/preview.json",
+                    ContentType: "application/json",
+                });
             })
             .then()
             .catch((err) => {

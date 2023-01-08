@@ -1,4 +1,9 @@
-const { S3 } = require("@aws-sdk/client-s3"),
+const {
+        S3,
+        UploadPartCommand,
+        GetObjectCommand,
+    } = require("@aws-sdk/client-s3"),
+    { getSignedUrl } = require("@aws-sdk/s3-request-presigner"),
     s3 = new S3(),
     KSUID = require("ksuid");
 
@@ -38,12 +43,15 @@ exports.handler = async (event) => {
             if (data.partNumbers) {
                 data.partNumbers.forEach((part_no) => {
                     promises.push(
-                        s3.getSignedUrlPromise("uploadPart", {
-                            Bucket: process.env.S3_BUCKET,
-                            Key: data.key,
-                            UploadId: data.uploadId,
-                            PartNumber: part_no,
-                        })
+                        getSignedUrl(
+                            s3,
+                            new UploadPartCommand({
+                                Bucket: process.env.S3_BUCKET,
+                                Key: data.key,
+                                UploadId: data.uploadId,
+                                PartNumber: part_no,
+                            })
+                        )
                     );
                 });
             } else {
@@ -101,13 +109,16 @@ exports.handler = async (event) => {
             data = JSON.parse(event.body);
 
             // get csv signed preview url
-            const previewUrl = await s3.getSignedUrlPromise("getObject", {
-                Bucket: process.env.S3_BUCKET,
-                Expires: 600,
-                Key: data.key
-                    .replace("temp/", "parsed/")
-                    .replace("/data.csv", "/preview.json"),
-            });
+            const previewUrl = await getSignedUrl(
+                s3,
+                new GetObjectCommand({
+                    Bucket: process.env.S3_BUCKET,
+                    Expires: 600,
+                    Key: data.key
+                        .replace("temp/", "parsed/")
+                        .replace("/data.csv", "/preview.json"),
+                })
+            );
 
             // complete multipart upload
             response.body = await s3

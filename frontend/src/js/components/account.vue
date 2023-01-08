@@ -61,40 +61,13 @@ export default {
 };
 </script>
 <template>
-    <div class="flex max-w-6xl mx-auto mt-12 bg-white rounded-sm sm:w-full">
+    <div
+        class="flex max-w-6xl mx-auto my-12 bg-white rounded-sm dark:bg-slate-700 sm:w-full"
+    >
         <sidebar :profile="profile"></sidebar>
         <div class="flex-1 min-w-0 p-12">
             <template v-if="!listSummary">
                 <div class="grid grid-cols-2 gap-12">
-                    <!-- <svg viewBox="0 0 240 240">
-                    <circle
-                        cx="120"
-                        cy="120"
-                        r="100"
-                        fill="none"
-                        stroke="black"
-                        stroke-width="40"
-                        stroke-dasharray="200,400"
-                    />
-                    <circle
-                        cx="120"
-                        cy="120"
-                        r="100"
-                        fill="none"
-                        stroke="red"
-                        stroke-width="40"
-                        stroke-dasharray="200,400"
-                    />
-                    <circle
-                        cx="120"
-                        cy="120"
-                        r="100"
-                        fill="none"
-                        stroke="black"
-                        stroke-width="40"
-                        stroke-dasharray="200,400"
-                    />
-                </svg> -->
                     <div>
                         <h2 class="text-4xl font-bold">
                             Let's sift out the junk.

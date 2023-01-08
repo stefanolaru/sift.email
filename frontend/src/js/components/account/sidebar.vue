@@ -15,7 +15,7 @@ export default {
 </script>
 <template>
     <div
-        class="flex flex-col justify-between w-48 py-12 border-r bg-slate-50 border-slate-100"
+        class="flex flex-col justify-between w-48 py-12 border-r bg-slate-50 border-slate-100 dark:bg-slate-800 dark:border-slate-800"
     >
         <div class="text-center">
             <svg

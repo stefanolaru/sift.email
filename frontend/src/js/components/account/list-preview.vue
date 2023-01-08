@@ -5,6 +5,8 @@ export default {
         return {
             // summary: mockdata,
             columnIdx: 0,
+            notifyWhenDone: true,
+            agreeTerms: false,
             loading: false,
         };
     },
@@ -14,7 +16,12 @@ export default {
     },
     computed: {
         buttonText() {
-            return this.loading ? "Please wait ..." : "Submit";
+            return this.loading
+                ? "Please wait ..."
+                : "Submit " + this.listCount + " rows";
+        },
+        listCount() {
+            return this.summary.total_rows.toLocaleString("en-US");
         },
     },
     methods: {
@@ -41,6 +48,7 @@ export default {
                     {
                         csv_id: this.summary.csv_id,
                         column_idx: this.columnIdx,
+                        email_notification: this.notifyWhenDone,
                     },
                     {
                         headers: {
@@ -59,12 +67,15 @@ export default {
 };
 </script>
 <template>
-    <form class="w-full mt-6" @submit.prevent="submitList">
-        <div class="py-3">
-            Preview CSV (first 15 rows) - please make sure the email column is
-            highlighted
+    <form class="w-full" @submit.prevent="submitList">
+        <h2 class="mb-6 text-4xl font-bold">
+            Submit list for validation ({{ listCount }} rows)
+        </h2>
+        <div class="mb-3 text-sm">
+            Here's a preview of your uploaded list (the first 15 rows) - please
+            make sure the email column is highlighted before submitting.
         </div>
-        <div class="h-64 overflow-scroll border border-gray-200">
+        <div class="h-64 mb-6 overflow-scroll border border-gray-200">
             <table class="min-w-full">
                 <tr
                     v-for="(row, rowIdx) in summary.preview"
@@ -88,21 +99,36 @@ export default {
                         v-text="col"
                     ></td>
                 </tr>
-                <tr>
-                    <td
-                        :colspan="summary.preview[0].length"
-                        class="py-6 font-light text-center text-gray-500"
-                    >
-                        + {{ summary.total_rows - 16 }} rows
-                    </td>
-                </tr>
             </table>
         </div>
-        <button
-            type="submit"
-            :disabled="loading"
-            class="px-12 py-3 text-white bg-indigo-500 rounded-md hover:bg-indigo-600"
-            v-text="buttonText"
-        ></button>
+        <div class="mb-3">
+            <label class="select-none"
+                ><input type="checkbox" v-model="agreeTerms" class="mr-1" /> I
+                understand the
+                <u>list validation process can't be or paused or cancelled</u>,
+                and I agree <strong>{{ this.listCount }} credits</strong> to be
+                deducted from my account balance when this list is submitted.
+            </label>
+        </div>
+        <div class="flex items-center justify-between">
+            <div>
+                <label class="leading-none select-none"
+                    ><input
+                        type="checkbox"
+                        v-model="notifyWhenDone"
+                        class="mr-1"
+                    />
+                    Notify me by email when the validation is finished</label
+                >
+            </div>
+            <div>
+                <button
+                    type="submit"
+                    :disabled="!agreeTerms || loading"
+                    class="px-12 py-3 text-white bg-indigo-500 rounded-md hover:bg-indigo-600 disabled:bg-slate-400"
+                    v-text="buttonText"
+                ></button>
+            </div>
+        </div>
     </form>
 </template>

@@ -46,7 +46,8 @@ exports.handler = async (event) => {
             Bucket: process.env.S3_BUCKET,
             Key: "parsed/" + user_id + "/" + data.csv_id + "/preview.json",
         })
-        .then((res) => JSON.parse(res.Body.toString("utf-8")))
+        .then((res) => res.Body.transformToString("utf-8"))
+        .then((res) => JSON.parse(res))
         .catch((err) => {
             console.log(err);
             return null;

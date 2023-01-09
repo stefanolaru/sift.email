@@ -27,6 +27,7 @@
     },
     "dependencies": {
         "disposable-email-domains": "^1.0.62",
+        "fast-levenshtein": "^3.0.0",
         "free-email-domains": "^1.0.28",
         "ksuid": "^3.0.0",
         "papaparse": "^5.3.2",

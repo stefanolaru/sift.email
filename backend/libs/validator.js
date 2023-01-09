@@ -1,5 +1,6 @@
 const dns = require("dns"),
     { SMTPClient } = require("smtp-client"),
+    levenshtein = require("fast-levenshtein"),
     disposable = require("disposable-email-domains"),
     free = require("free-email-domains"),
     roles = [
@@ -94,6 +95,22 @@ const validateEmail = async (input, timeout = 5000) =>
                 } else {
                     response = res.domain; // default to domain result
                 }
+
+                // if the result is invalid check for popular domain typo
+                if (response.result == "INVALID") {
+                    // loop all popular (free) domains and try to match
+                    const suggestions = free.sort((a, b) => {
+                        return (
+                            levenshtein.get(a, result.domain) -
+                            levenshtein.get(b, result.domain)
+                        );
+                    });
+
+                    Object.assign(response, {
+                        suggest: result.local_part + "@" + suggestions[0],
+                    });
+                }
+
                 // resolve
                 resolve(response);
             })
@@ -288,7 +305,7 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
     // Send a HELO/EHLO command
     greylisted = false;
     const HELO = await client
-        .greet({ timeout: timeout })
+        .greet({ hostname: process.env.MAIL_HOSTNAME, timeout: timeout })
         .then(() => true)
         .catch((err) => {
             greylisted = isSmtpGreylisted(err);
@@ -362,6 +379,16 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
         return Promise.resolve(response);
     }
 
+    // send noop
+    await client
+        .noop({ timeout: timeout })
+        .then((res) => {
+            console.log(res);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+
     // check for invalid recipients
     while (recipients.length) {
         const recipient = recipients.shift();
@@ -383,7 +410,7 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
                         accuracy: HIGH,
                     });
                 } else {
-                    // set domain response accuracy to medium
+                    // set domain response accuracy to medium, assume valid though
                     response.domain.accuracy = MEDIUM;
                 }
             });
@@ -401,7 +428,6 @@ const validateDomain = async (domain, recipients, timeout = 5000) => {
 
 //
 const isSmtpGreylisted = (err) => {
-    // console.log(err);
     /*
     450 - Requested action not taken – The user’s mailbox is unavailable
     451 - Requested action aborted – Local error in processing

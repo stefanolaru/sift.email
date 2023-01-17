@@ -72,7 +72,7 @@ exports.handler = async (event) => {
     let pendingCount = 0;
 
     // parse data
-    const data = JSON.parse(await res.Body.transformToString("utf-8"));
+    const data = JSON.parse(await body.transformToString("utf-8"));
 
     // loop data and make the initial validation
     data.forEach((item, idx) => {

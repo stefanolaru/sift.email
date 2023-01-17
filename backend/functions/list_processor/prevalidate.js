@@ -141,7 +141,7 @@ exports.handler = async (event) => {
         //
         if (output[k] > 0) {
             promises.push(
-                s3.upload({
+                s3.putObject({
                     Bucket: process.env.S3_BUCKET,
                     Body: JSON.stringify(results[k]),
                     Key:

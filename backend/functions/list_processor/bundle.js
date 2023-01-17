@@ -227,42 +227,42 @@ exports.handler = async (event) => {
     const resultsS3Prefix = "output/" + user_id + "/" + request_id + "/results",
         s3Promises = [
             // full results JSON
-            s3.upload({
+            s3.putObject({
                 Bucket: process.env.S3_BUCKET,
                 Body: JSON.stringify(parsedJson),
                 Key: resultsS3Prefix + "/full.json",
                 ContentType: "application/json",
             }),
             // full results CSV
-            s3.upload({
+            s3.putObject({
                 Bucket: process.env.S3_BUCKET,
                 Body: Papa.unparse(parsedJson),
                 Key: resultsS3Prefix + "/full.csv",
                 ContentType: "text/csv",
             }),
             // valid results JSON
-            s3.upload({
+            s3.putObject({
                 Bucket: process.env.S3_BUCKET,
                 Body: JSON.stringify(valid),
                 Key: resultsS3Prefix + "/valid.json",
                 ContentType: "application/json",
             }),
             // valid results CSV
-            s3.upload({
+            s3.putObject({
                 Bucket: process.env.S3_BUCKET,
                 Body: Papa.unparse(valid),
                 Key: resultsS3Prefix + "/valid.csv",
                 ContentType: "text/csv",
             }),
             // invalid results JSON
-            s3.upload({
+            s3.putObject({
                 Bucket: process.env.S3_BUCKET,
                 Body: JSON.stringify(invalid),
                 Key: resultsS3Prefix + "/invalid.json",
                 ContentType: "application/json",
             }),
             // invalid results CSV
-            s3.upload({
+            s3.putObject({
                 Bucket: process.env.S3_BUCKET,
                 Body: Papa.unparse(invalid),
                 Key: resultsS3Prefix + "/invalid.csv",

@@ -2,7 +2,7 @@ queueConsumerValidate:
     handler: backend/functions/queue_consumer/validate.handler
     memorySize: 256
     timeout: 120 # 2 mins max
-    reservedConcurrency: 10
+    # reservedConcurrency: 10
     role: QueueConsumerRole
     vpc:
         securityGroupIds:
@@ -14,6 +14,7 @@ queueConsumerValidate:
     environment:
         DDB_TABLE: !Ref Table
         EMAIL_FROM_ADDRESS: ${ssm:/SIFT/EMAIL_FROM_ADDRESS}
+        MAIL_HOSTNAME: ${ssm:/SIFT/MAIL_HOSTNAME}
     events:
         - sqs:
               arn: !GetAtt Queue.Arn

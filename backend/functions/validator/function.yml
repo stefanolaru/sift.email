@@ -1,7 +1,8 @@
 # public validator
 publicValidator:
     handler: backend/functions/validator/public.handler
-    timeout: 10
+    memorySize: 256
+    timeout: 28
     role: PublicValidatorRole
     vpc:
         securityGroupIds:
@@ -24,7 +25,8 @@ publicValidator:
 # private validator
 privateValidator:
     handler: backend/functions/validator/private.handler
-    timeout: 15
+    memorySize: 256
+    timeout: 28
     role: PrivateValidatorRole
     vpc:
         securityGroupIds:

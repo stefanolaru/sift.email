@@ -15,7 +15,7 @@ exports.handler = async (event) => {
     if (!event.detail || !event.detail.object) return;
 
     // read data.json
-    const { metadata, data } = await s3
+    const { metadata, body } = await s3
         .getObject({
             Bucket: process.env.S3_BUCKET,
             Key: event.detail.object.key,
@@ -23,7 +23,7 @@ exports.handler = async (event) => {
         .then((res) => {
             return {
                 metadata: res.Metadata,
-                data: JSON.parse(res.Body.toString("utf-8")),
+                body: res.Body,
             };
         })
         .catch((err) => {
@@ -70,6 +70,9 @@ exports.handler = async (event) => {
 
     // init pending count
     let pendingCount = 0;
+
+    // parse data
+    const data = JSON.parse(await res.Body.transformToString("utf-8"));
 
     // loop data and make the initial validation
     data.forEach((item, idx) => {

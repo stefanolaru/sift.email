@@ -434,7 +434,7 @@ const isSmtpGreylisted = (err) => {
     452 - Too many emails sent or too many recipients
     */
     // if one of the codes above, we consider it greylisted
-    if (err.code && [450, 451, 452].includes(err.code)) {
+    if (err.code && ["450", "451", "452"].includes(err.code)) {
         return true;
     }
 

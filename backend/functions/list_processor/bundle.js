@@ -206,14 +206,14 @@ exports.handler = async (event) => {
     await ddb
         .updateItem({
             TableName: process.env.DDB_TABLE,
-            Key: AWS.DynamoDB.Converter.marshall({
+            Key: marshall({
                 PK: request.PK,
                 SK: request.SK,
             }),
             ExpressionAttributeNames: {
                 "#results": "validation_results",
             },
-            ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall({
+            ExpressionAttributeValues: marshall({
                 ":value": stats,
             }),
             UpdateExpression: "SET #results=:value",

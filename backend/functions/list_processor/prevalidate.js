@@ -247,7 +247,7 @@ exports.handler = async (event) => {
         shards.forEach((v, k) => {
             dbItems.push({
                 PutRequest: {
-                    Item: AWS.DynamoDB.Converter.marshall({
+                    Item: marshall({
                         PK: "dc#" + metadata.request_id,
                         SK: domain + "#" + k,
                         GSI: metadata.request_id + "#pending",
